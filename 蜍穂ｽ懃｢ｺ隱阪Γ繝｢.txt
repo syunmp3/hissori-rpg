@@ -1,0 +1,15 @@
+ひっそりRPG β0.4-4 動作確認
+
+index_exists: True
+style_exists: True
+script_exists: True
+no_growth_detail: True
+no_multiplier_label: True
+has_monster_detail: True
+has_new_skills: True
+has_fusion: True
+has_dungeon: True
+html_loads_script: True
+html_loads_style: True
+missing_onclick_functions: []
+JavaScript syntax: True

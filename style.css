@@ -1,0 +1,352 @@
+*{box-sizing:border-box}:root{--bg:#171717;--p:#292929;--p2:#363636;--a:#587bd7;--g:#45c96d;--y:#f0cf50;--r:#ef5d5d;--o:#f1a54f}body{margin:0;background:#111;color:#f5f5f5;font-family:system-ui,sans-serif;display:flex;justify-content:center}.phone{width:min(430px,100vw);min-height:100vh;background:#222;padding:9px}header{height:48px;display:flex;justify-content:space-between;align-items:center}header strong{font-size:19px}header small{display:block;color:#aaa;font-size:10px}.mini{min-height:32px;padding:5px 9px;margin-left:4px;background:#444}button{border:0;border-radius:9px;background:var(--a);color:#fff;min-height:42px;font-weight:700;padding:8px}.grid{display:grid;gap:8px}.menu{grid-template-columns:1fr 1fr}.card{background:var(--p);border-radius:11px;padding:11px;margin:8px 0}.title{font-weight:800;margin-bottom:8px}.muted{color:#aaa;font-size:12px}.unitrow{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.unit{background:var(--p2);border:1px solid transparent;border-radius:9px;padding:6px;text-align:center;min-width:0}.unit.sel{border-color:#91acff}.unit.target{border-color:var(--o)}.unit.dead{opacity:.4;filter:grayscale(1)}.orb{width:38px;height:38px;border-radius:50%;margin:0 auto 4px;border:2px solid #ffffff22}.name{font-size:10px;font-weight:800;min-height:24px}.sub{font-size:9px;color:#bbb}.ename.warn{color:var(--y)}.ename.danger{color:var(--r)}.hp{height:7px;background:#555;border-radius:5px;overflow:hidden;margin-top:4px}.hp span{display:block;height:100%;background:var(--g)}.action{font-size:9px;color:#a9c4ff;min-height:14px;margin-top:3px}.status{display:flex;justify-content:space-between;background:var(--p);padding:7px 9px;border-radius:9px 9px 0 0;font-size:13px;font-weight:800}.gauge{display:grid;grid-template-columns:repeat(9,1fr);gap:3px;background:var(--p);padding:0 9px 8px;border-radius:0 0 9px 9px}.cell{height:10px;background:#555;border-radius:3px}.cell.on{background:var(--a)}.log{height:76px;overflow:auto;background:#141414;border-radius:9px;padding:8px;font-size:11px;line-height:1.45;margin:8px 0}.commands{grid-template-columns:1fr 1fr}.commands button small{display:block;font-size:9px;opacity:.8}.wide{width:100%;margin-top:7px;background:#9b4fd1}.listitem{background:var(--p2);padding:9px;border-radius:8px;margin:6px 0}.choice{border:1px solid #777;cursor:pointer}.choice.sel{border-color:#8eabff}.badge{display:inline-block;padding:2px 5px;border-radius:6px;background:#555;font-size:10px}.hidden{display:none}.result{background:#32263a}.candidate-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.dangerbtn{background:#a84444}@media(max-height:720px){.orb{width:32px;height:32px}.log{height:58px}.card{padding:8px;margin:6px 0}}
+.listitem.sel{outline:2px solid #6f8fe8;background:#3a4562}.result{margin-top:16px}
+
+.confirm-monster{text-align:center;padding:10px 0}
+.big-orb{width:72px;height:72px;margin:0 auto 8px;border-radius:50%;border:3px solid rgba(255,255,255,.25)}
+.confirm-monster h2{font-size:20px;margin:6px 0}
+
+.inherit-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.inherit-btn{background:#45506a}
+.inherit-btn.sel{outline:2px solid #ffd166;background:#6a5a35}
+.preview{background:#292f3d;margin-top:10px}
+
+.btn-next{background:#4f78d8!important;color:#fff!important}
+.btn-cancel{background:#c94f55!important;color:#fff!important}
+.star-result{font-size:24px;font-weight:800;margin-top:8px}
+.fusion-success{margin:12px 0;padding:10px;border-radius:8px;background:#6a5421;color:#ffe77a;font-weight:800;text-align:center}
+.save-message{margin:8px 0;padding:9px;border-radius:8px;background:#294f38;color:#bff2ce;font-weight:700}
+.save-warning{margin:8px 0;padding:9px;border-radius:8px;background:#5a3030;color:#ffd0d0;font-size:12px}
+.save-note{margin-top:12px;line-height:1.6}
+.data-management .wide{margin-top:8px}
+.mode-select .listitem{padding:12px}
+.mode-select .listitem+.listitem{margin-top:10px}
+.dev-action{margin-top:8px;background:#b06bca}
+.menu button small{display:block;margin-top:3px;font-size:9px;opacity:.8}
+.menu button:disabled{background:#444;color:#aaa;opacity:.8}
+
+.fusion-bonus{margin:10px 0;padding:10px;background:#2f3c2f;border-radius:8px}
+
+.monster-open-btn{
+  width:100%;
+  min-height:0;
+  padding:8px;
+  margin-bottom:8px;
+  text-align:left;
+  background:#303846;
+}
+.monster-detail{padding-bottom:18px}
+.detail-head{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  margin-bottom:12px;
+}
+.detail-orb{
+  width:64px;
+  height:64px;
+  flex:0 0 64px;
+  border-radius:50%;
+  border:3px solid rgba(255,255,255,.25);
+}
+.detail-section{
+  margin-top:12px;
+  padding:10px;
+  background:#2b303a;
+  border-radius:9px;
+}
+.detail-stat-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:12px;
+}
+.detail-stat-grid>div{
+  display:flex;
+  justify-content:space-between;
+  padding:10px;
+  background:#353c49;
+  border-radius:8px;
+}
+.skill-detail{
+  margin-top:8px;
+  padding:9px;
+  background:#373f4d;
+  border-radius:8px;
+  font-size:13px;
+}
+.skill-detail strong{font-size:14px}
+
+.transition-screen{
+  min-height:78vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  background:linear-gradient(180deg,#232938,#191d27);
+  border-radius:14px;
+}
+.transition-title{font-size:30px;font-weight:800;letter-spacing:2px}
+.transition-sub{margin-top:12px;font-size:18px;color:#bfc8dc}
+.retire-btn{margin-top:8px}
+.result-section{
+  margin-top:12px;
+  padding:10px;
+  background:#2b303a;
+  border-radius:9px;
+}
+.result-value{margin-top:6px;font-size:20px;font-weight:800;color:#ffe073}
+.exp-result{
+  margin-top:10px;
+  padding:9px;
+  background:#373f4d;
+  border-radius:8px;
+}
+.exp-head{display:flex;justify-content:space-between;gap:8px;font-size:12px}
+.exp-gauge{
+  height:10px;
+  margin:7px 0;
+  background:#555;
+  border-radius:5px;
+  overflow:hidden;
+}
+.exp-gauge span{
+  display:block;
+  height:100%;
+  background:#64a8ff;
+}
+.level-notice{
+  margin-top:6px;
+  color:#ffe073;
+  font-weight:800;
+}
+
+.choice-stack{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.difficulty-list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.difficulty-btn{display:flex;justify-content:space-between;align-items:center;text-align:left;padding:10px 12px}
+.difficulty-btn small{font-size:10px;font-weight:500;opacity:.8}
+.difficulty-btn.locked{background:#555}
+.difficulty-counts{margin-top:7px;color:#c5cee0;font-size:10px}
+.book-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.book-entry{position:relative;display:block;width:100%;min-width:0;min-height:0;padding:16px 2px 7px;background:#353535!important;color:#f5f5f5;border-radius:8px;text-align:center}
+.book-entry.unknown{opacity:.7}
+.book-entry .monster-artwork,.book-entry .artwork-fallback{margin:0 auto 5px}
+.book-entry .artwork-small{width:44px;height:44px;max-width:100%}
+.book-no{position:absolute;top:4px;left:5px;color:#aeb6c3;font-size:8px;font-weight:700;line-height:1}
+.book-name{display:block;min-height:23px;font-size:9px;font-weight:700;line-height:1.25;word-break:break-all}
+.book-detail{text-align:center}
+.book-detail-no{color:#aeb6c3;font-size:13px;font-weight:700}
+.book-detail-art{display:flex;justify-content:center;margin:8px 0}
+.book-detail-name{font-size:22px;font-weight:800;margin-bottom:12px}
+.book-detail-row{display:flex;justify-content:space-between;align-items:center;margin-top:7px;padding:10px;background:#353c49;border-radius:8px}
+.book-detail-row b{display:flex;align-items:center;gap:5px}
+.book-detail .detail-section{text-align:left}
+#retireBtn{min-height:auto;padding:7px 11px}
+
+.sort-row{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+  margin:10px 0;
+}
+.sort-row button{min-height:38px;font-size:12px}
+.monster-list-card{
+  width:100%;
+  margin-top:8px;
+  padding:10px;
+  text-align:left;
+  background:#303846;
+}
+.party-slot{
+  display:grid;
+  grid-template-columns:1fr 76px;
+  gap:8px;
+  align-items:stretch;
+  margin-top:9px;
+}
+.party-monster{
+  min-height:0;
+  padding:10px;
+  text-align:left;
+  background:#303846;
+}
+.change-btn{min-height:100%}
+.selected-party{
+  outline:2px solid #ffd166;
+  background:#5b5132;
+}
+
+header{
+  position:sticky;
+  top:0;
+  z-index:100;
+  background:#222;
+  padding-top:8px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+#app{padding-top:4px}
+.sort-row{grid-template-columns:repeat(2,1fr)}
+button:disabled{
+  background:#555!important;
+  color:#999!important;
+  opacity:.7;
+  cursor:not-allowed;
+  box-shadow:none!important;
+}
+
+/* モンスター一覧：名前 → レベル → 星 → ＋値 → 属性 → 種族 */
+.monster-list-heading,
+.monster-list-card{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 52px 38px 38px 42px 42px;
+  gap:4px;
+  align-items:center;
+}
+.star-display{
+  color:#fff;
+  font-weight:800;
+  line-height:1;
+}
+.star-full{display:inline-flex;align-items:center;justify-content:center}
+.star-compact{display:inline-flex;align-items:baseline;gap:1px}
+.star-count{
+  color:#fff;
+  font-weight:400;
+  font-size:.9em;
+  letter-spacing:0;
+  -webkit-text-fill-color:#fff;
+  -webkit-text-stroke:0;
+  text-shadow:none;
+}
+.star-five{
+  display:inline-grid;
+  grid-template-rows:auto auto;
+  justify-items:center;
+  line-height:.75;
+  vertical-align:middle;
+  letter-spacing:0;
+}
+.star-five-top,.star-five-bottom{display:block;white-space:nowrap}
+.star-five-bottom{margin-top:1px}
+.rare-star.star-full,
+.rare-star .star-mark{
+  color:#ffd84d;
+  font-weight:900;
+  background:linear-gradient(180deg,#fff8b0 0%,#ffd84d 30%,#b97900 52%,#fff070 72%,#d99a00 100%);
+  background-clip:text;
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  -webkit-text-stroke:.25px rgba(255,246,166,.8);
+  text-shadow:0 0 2px rgba(255,215,64,.55),0 1px 2px rgba(60,34,0,.8);
+}
+.monster-list-heading{
+  padding:5px 10px 1px;
+  color:#aeb6c3;
+  font-size:11px;
+  text-align:center;
+}
+.monster-list-heading span:first-child{text-align:left}
+.monster-list-card{
+  min-height:58px;
+  padding:7px 10px;
+}
+.monster-list-name{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.monster-list-level,
+.monster-list-stars,
+.monster-list-plus,
+.monster-list-icon{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  white-space:nowrap;
+}
+.monster-list-stars{
+  color:#fff;
+  font-size:14px;
+}
+.monster-list-plus{
+  color:#9fd3ff;
+  font-size:12px;
+  font-weight:800;
+}
+.monster-icon{
+  display:block;
+  width:38px;
+  height:38px;
+  object-fit:contain;
+  border-radius:50%;
+  pointer-events:none;
+}
+.monster-icon-empty{
+  border:2px solid #777;
+  border-radius:50%;
+}
+@media (max-width:420px){
+  .monster-list-heading,
+  .monster-list-card{
+    grid-template-columns:minmax(0,1fr) 45px 34px 34px 36px 36px;
+    gap:3px;
+  }
+  .monster-list-card{padding:7px 6px}
+  .monster-list-heading{padding-left:6px;padding-right:6px;font-size:10px}
+  .monster-list-level{font-size:12px}
+  .monster-list-stars{font-size:13px}
+  .monster-icon{width:34px;height:34px}
+}
+
+/* β0.4-15 戦闘画面演出 */
+.transition-screen{cursor:pointer;touch-action:manipulation;user-select:none}
+.battle-unit.sel{border:3px solid #91acff;padding:4px}
+.battle-unit.target{border:3px solid var(--o);padding:4px}
+.status-log.fear{color:#d79cff;font-weight:800}
+.status-log.petrify{color:#bfc5cc;font-weight:800}
+.battle-unit.target-option-enemy{outline:3px solid var(--o);outline-offset:1px;animation:enemy-target-pulse 1.8s ease-in-out infinite}
+.battle-unit.target-option-ally{outline:3px solid #78e6a0;outline-offset:4px;animation:ally-target-pulse 1.8s ease-in-out infinite}
+@keyframes enemy-target-pulse{0%,100%{outline-color:#f1a54f55}50%{outline-color:#f1a54fff}}
+@keyframes ally-target-pulse{0%,100%{outline-color:#78e6a055}50%{outline-color:#78e6a0ff}}
+@media(prefers-reduced-motion:reduce){.battle-unit.target-option-enemy,.battle-unit.target-option-ally{animation:none}}
+.battle-side{overflow:visible}.battle-unit{position:relative;overflow:visible;will-change:transform}.battle-unit .hp{height:8px}.battle-unit .hp span{transition:width .55s cubic-bezier(.2,.75,.3,1)}.hp-text{font-variant-numeric:tabular-nums;white-space:nowrap}.commands button:disabled,.btn-next:disabled{opacity:.55;pointer-events:none}.log{display:flex;flex-direction:column;gap:3px}.log-line{min-height:16px}.damage-log{font-weight:800}.damage-log.weak{color:#ff6666}.damage-log.resist{color:#aaa}.damage-popup{position:absolute;z-index:8;left:50%;top:8px;display:flex;align-items:center;gap:3px;color:#fff;font-size:20px;font-weight:900;text-shadow:0 2px 3px #000,-1px 0 #000,1px 0 #000;pointer-events:none;animation:damage-float .72s ease-out forwards}.damage-popup img{width:20px;height:20px;object-fit:contain}.damage-popup.weak{color:#ff5555;font-size:22px}.damage-popup.resist{color:#aaa}.battle-unit.attack-up{animation:attack-up .24s ease-in-out}.battle-unit.attack-down{animation:attack-down .24s ease-in-out}.battle-unit.hit-shake .battle-visual{animation:hit-shake .28s ease-in-out}@keyframes attack-up{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}@keyframes attack-down{0%,100%{transform:translateY(0)}50%{transform:translateY(12px)}}@keyframes hit-shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}@keyframes damage-float{0%{opacity:0;transform:translate(-50%,8px)}18%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-28px)}}.victory-title{text-align:center;color:var(--y);font-size:27px;font-weight:900;letter-spacing:.08em;margin:6px 0 10px}.level-stats{margin-top:5px;color:#fff;line-height:1.5}@media(prefers-reduced-motion:reduce){.battle-unit .hp span{transition-duration:.01ms}.battle-unit.attack-up,.battle-unit.attack-down,.battle-unit.hit-shake .battle-visual{animation:none}.damage-popup{animation-duration:.01ms}}.unitrow.single-enemy{grid-template-columns:minmax(0,1fr);max-width:130px;margin-inline:auto}
+
+/* β0.4-33 モンスターイラスト */
+.monster-artwork{display:block;object-fit:contain;image-rendering:pixelated;image-rendering:crisp-edges;pointer-events:none}
+.artwork-fallback{flex:none}
+.artwork-tiny{width:28px;height:28px;flex:none}
+.artwork-small{width:48px;height:48px;flex:none}
+.artwork-medium{width:56px;height:56px;margin-inline:auto}
+.artwork-large{width:96px;height:96px;flex:0 0 96px}
+.artwork-battle{width:64px;height:64px;margin:0 auto 4px}
+.artwork-list-row{display:flex;align-items:center;gap:9px;min-width:0;text-align:left}
+.artwork-list-row>div,.artwork-list-row>span{min-width:0}
+.artwork-list-row .muted{display:block}
+.monster-list-name{display:flex;align-items:center;gap:5px}
+.monster-list-name .artwork-tiny{width:26px;height:26px}
+.party-choice-button{width:100%;background:var(--p2)}
+.artwork-candidate{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.confirm-monster .artwork-large{margin-inline:auto}
+.detail-head .artwork-large{margin:0}
+.battle-visual{min-height:64px;display:flex;align-items:flex-end;justify-content:center}
+@media(max-height:720px){.artwork-battle{width:52px;height:52px}.battle-visual{min-height:52px}}
+
+/* β0.5-3 ガチャ・見た目変更 */
+.gacha-card{text-align:center}
+.gacha-ticket-count,.appearance-ticket-count{margin:10px 0;font-size:15px}
+.gacha-rate{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}
+.gacha-rate>div{display:flex;flex-direction:column;gap:4px;padding:10px 6px;border:1px solid #555;border-radius:10px;background:var(--p2)}
+.gacha-rate b{color:var(--y);font-size:20px}
+.gacha-rate span{font-size:12px}
+.gacha-result{margin:12px 0;padding:12px;border-radius:10px;font-weight:900}
+.gacha-result.win{color:#ffe684;background:#79661f55;border:1px solid #c7a92f}
+.gacha-result.miss{color:#aaa;background:#333;border:1px solid #555}
+.appearance-list-controls{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:-4px 0 8px;padding:4px 7px;border:1px solid #4d4d4d;border-top:0;border-radius:0 0 8px 8px;background:#18181d;font-size:12px}
+.appearance-list-controls button{min-height:32px;padding:5px 10px;font-size:12px}
+.appearance-preview{display:flex;align-items:center;gap:12px;margin-top:8px}
+.appearance-preview .artwork-large{flex:none}
+@media(max-width:420px){
+  .gacha-rate{grid-template-columns:1fr}
+  .appearance-preview{align-items:flex-start}
+}

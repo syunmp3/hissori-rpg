@@ -1,0 +1,332 @@
+[
+  {
+    "number": 1,
+    "id": "SLIME_BLUE",
+    "name": "ブルースライム",
+    "race": "物質"
+  },
+  {
+    "number": 2,
+    "id": "SLIME_RED",
+    "name": "レッドスライム",
+    "race": "物質"
+  },
+  {
+    "number": 3,
+    "id": "SLIME_YELLOW",
+    "name": "イエロースライム",
+    "race": "物質"
+  },
+  {
+    "number": 4,
+    "id": "SLIME_GREEN",
+    "name": "グリーンスライム",
+    "race": "物質"
+  },
+  {
+    "number": 5,
+    "id": "MINIC",
+    "name": "ミニック",
+    "race": "物質"
+  },
+  {
+    "number": 6,
+    "id": "MIMIC",
+    "name": "ミミック",
+    "race": "物質"
+  },
+  {
+    "number": 7,
+    "id": "STONE",
+    "name": "ストーン",
+    "race": "物質"
+  },
+  {
+    "number": 8,
+    "id": "MANDRAGORA",
+    "name": "マンドラゴラ",
+    "race": "植物"
+  },
+  {
+    "number": 9,
+    "id": "SEED",
+    "name": "シード",
+    "race": "植物"
+  },
+  {
+    "number": 10,
+    "id": "FLOWER_MAN",
+    "name": "フラワーマン",
+    "race": "植物"
+  },
+  {
+    "number": 11,
+    "id": "WOLF",
+    "name": "ウルフ",
+    "race": "獣"
+  },
+  {
+    "number": 12,
+    "id": "HIGH_WOLF",
+    "name": "ハイウルフ",
+    "race": "獣"
+  },
+  {
+    "number": 13,
+    "id": "BEAR",
+    "name": "ベア",
+    "race": "獣"
+  },
+  {
+    "number": 14,
+    "id": "KOKOPI",
+    "name": "ココピ",
+    "race": "獣"
+  },
+  {
+    "number": 15,
+    "id": "KOKKORU",
+    "name": "コッコル",
+    "race": "獣"
+  },
+  {
+    "number": 16,
+    "id": "COCKATRICE",
+    "name": "コカトリス",
+    "race": "獣"
+  },
+  {
+    "number": 17,
+    "id": "GOBLIN",
+    "name": "ゴブリン",
+    "race": "亜人"
+  },
+  {
+    "number": 18,
+    "id": "HIGH_GOBLIN",
+    "name": "ハイゴブリン",
+    "race": "亜人"
+  },
+  {
+    "number": 19,
+    "id": "KOBOLD",
+    "name": "コボルト",
+    "race": "亜人"
+  },
+  {
+    "number": 20,
+    "id": "ORC",
+    "name": "オーク",
+    "race": "亜人"
+  },
+  {
+    "number": 21,
+    "id": "HIGH_ORC",
+    "name": "ハイオーク",
+    "race": "亜人"
+  },
+  {
+    "number": 22,
+    "id": "THIEF",
+    "name": "シーフ",
+    "race": "亜人"
+  },
+  {
+    "number": 23,
+    "id": "DEMON_KID",
+    "name": "デーモンキッズ",
+    "race": "悪魔"
+  },
+  {
+    "number": 24,
+    "id": "MINI_FAIRY",
+    "name": "ミニフェアリー",
+    "race": "精霊"
+  },
+  {
+    "number": 25,
+    "id": "FAIRY",
+    "name": "フェアリー",
+    "race": "精霊"
+  },
+  {
+    "number": 26,
+    "id": "LIZARD_KID",
+    "name": "リザードキッズ",
+    "race": "龍"
+  },
+  {
+    "number": 27,
+    "id": "LIZARD",
+    "name": "リザード",
+    "race": "龍"
+  },
+  {
+    "number": 28,
+    "id": "HIGH_LIZARD",
+    "name": "ハイリザード",
+    "race": "龍"
+  },
+  {
+    "number": 29,
+    "id": "CRYSTAL",
+    "name": "クリスタル",
+    "race": "物質"
+  },
+  {
+    "number": 30,
+    "id": "IRON",
+    "name": "アイアン",
+    "race": "物質"
+  },
+  {
+    "number": 31,
+    "id": "GOLEM",
+    "name": "ゴーレム",
+    "race": "物質"
+  },
+  {
+    "number": 32,
+    "id": "SPIDER",
+    "name": "スパイダー",
+    "race": "植物"
+  },
+  {
+    "number": 33,
+    "id": "BAT",
+    "name": "バット",
+    "race": "獣"
+  },
+  {
+    "number": 34,
+    "id": "BLOOD_BAT",
+    "name": "ブラッドバット",
+    "race": "獣"
+  },
+  {
+    "number": 35,
+    "id": "HORN_RABBIT",
+    "name": "ホーンラビット",
+    "race": "獣"
+  },
+  {
+    "number": 36,
+    "id": "RAT",
+    "name": "ラット",
+    "race": "獣"
+  },
+  {
+    "number": 37,
+    "id": "FOX",
+    "name": "フォックス",
+    "race": "獣"
+  },
+  {
+    "number": 38,
+    "id": "WILD_BOAR",
+    "name": "ワイルドボア",
+    "race": "獣"
+  },
+  {
+    "number": 39,
+    "id": "WITCH",
+    "name": "ウィッチ",
+    "race": "亜人"
+  },
+  {
+    "number": 40,
+    "id": "SHAMAN",
+    "name": "シャーマン",
+    "race": "亜人"
+  },
+  {
+    "number": 41,
+    "id": "ZOMBIE",
+    "name": "ゾンビ",
+    "race": "アンデッド"
+  },
+  {
+    "number": 42,
+    "id": "SKELETON",
+    "name": "スケルトン",
+    "race": "アンデッド"
+  },
+  {
+    "number": 43,
+    "id": "GHOST",
+    "name": "ゴースト",
+    "race": "アンデッド"
+  },
+  {
+    "number": 44,
+    "id": "VAMPEEL",
+    "name": "ヴァンピール",
+    "race": "アンデッド"
+  },
+  {
+    "number": 45,
+    "id": "VAMPIRE",
+    "name": "ヴァンパイア",
+    "race": "アンデッド"
+  },
+  {
+    "number": 46,
+    "id": "MINI_DEMON",
+    "name": "ミニデーモン",
+    "race": "悪魔"
+  },
+  {
+    "number": 47,
+    "id": "DEMON",
+    "name": "デーモン",
+    "race": "悪魔"
+  },
+  {
+    "number": 48,
+    "id": "IMP",
+    "name": "インプ",
+    "race": "悪魔"
+  },
+  {
+    "number": 49,
+    "id": "GARGOYLE",
+    "name": "ガーゴイル",
+    "race": "悪魔"
+  },
+  {
+    "number": 50,
+    "id": "HELL_HOUND",
+    "name": "ヘルハウンド",
+    "race": "悪魔"
+  },
+  {
+    "number": 51,
+    "id": "FLAME",
+    "name": "フレイム",
+    "race": "精霊"
+  },
+  {
+    "number": 52,
+    "id": "AQUA_SPIRIT",
+    "name": "アクア",
+    "race": "精霊"
+  },
+  {
+    "number": 53,
+    "id": "BOLT_SPIRIT",
+    "name": "ボルト",
+    "race": "精霊"
+  },
+  {
+    "number": 54,
+    "id": "LEAF_SPIRIT",
+    "name": "リーフ",
+    "race": "精霊"
+  },
+  {
+    "number": 55,
+    "id": "SHADOW_SPIRIT",
+    "name": "シャドウ",
+    "race": "精霊"
+  }
+]
