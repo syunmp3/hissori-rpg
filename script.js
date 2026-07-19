@@ -200,7 +200,7 @@ const MONSTER_DEFEAT_COUNTS_KEY='hissoriRpgMonsterDefeatCountsV1';
 const GAME_SAVE_KEY='hissoriRpgSaveV1';
 const GAME_SAVE_VERSION=4;
 const GACHA_TICKET_DROP_RATE=.01;
-const GACHA_APPEARANCE_TICKET_RATE=.20;
+const GACHA_APPEARANCE_TICKET_RATE=.5;
 const APPEARANCE_CHANGE_MONSTER_IDS=new Set(['VAMPIRE','COCKATRICE']);
 // 配布時に normal / development へ固定する。selector は共通開発元用。
 const BUILD_MODE='normal';
@@ -593,8 +593,8 @@ function showGacha(message='',won=false){
     <div class="gacha-ticket-count">ガチャチケット <b>${state.gachaTickets}枚</b></div>
     <div class="muted">1回につきガチャチケットを1枚使用します。</div>
     <div class="gacha-rate">
-      <div><b>20%</b><span>見た目変更チケット ×1</span></div>
-      <div><b>80%</b><span>はずれ（何もなし）</span></div>
+      <div><b>5%</b><span>見た目変更チケット ×1</span></div>
+      <div><b>95%</b><span>はずれ（何もなし）</span></div>
     </div>
     ${message?`<div class="gacha-result ${won?'win':'miss'}">${message}</div>`:''}
     <button class="wide btn-next" onclick="drawGacha()" ${state.gachaTickets<1?'disabled':''}>1回引く</button>
