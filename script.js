@@ -232,6 +232,7 @@ function difficultyUnlocked(dungeonId,difficulty){
   if(difficulty==='hard')return (state.dungeonProgress[dungeonId]?.normal||0)>=20;
   return (state.dungeonProgress[dungeonId]?.hard||0)>=30;
 }
+//経験値関連
 function difficultyConfig(){return DIFFICULTIES[state.difficulty]||DIFFICULTIES.normal}
 function expGrowthMultiplier(type,level){
   if(type==='早熟型')return .8+.4*(Math.max(1,Math.min(99,level))-1)/98;
@@ -255,6 +256,30 @@ function growthDelta(base,fromLevel,toLevel){
   const from=growthAtLevel(base,fromLevel),to=growthAtLevel(base,toLevel);
   return{maxHp:to.maxHp-from.maxHp,atk:to.atk-from.atk,def:to.def-from.def,spd:to.spd-from.spd};
 }
+function addMonsterExp(member, gainedExp){
+  const levelUps = [];
+  member.exp += gainedExp;
+  while(member.exp >= member.nextExp && member.level < 100){
+    member.exp -= member.nextExp;
+    const increase = growthDelta(
+      monsterDB[member.id],
+      member.level,
+      member.level + 1
+    );
+    member.level++;
+    levelUps.push(member.level);
+    member.maxHp += increase.maxHp;
+    member.atk += increase.atk;
+    member.def += increase.def;
+    member.spd += increase.spd;
+    member.nextExp = requiredExp(
+      member.level,
+      member.expGrowth
+    );
+  }
+  return levelUps;
+}
+//
 const app=document.getElementById('app'),skipBtn=document.getElementById('skipBtn'),retireBtn=document.getElementById('retireBtn'),backBtn=document.getElementById('backBtn'),homeBtn=document.getElementById('homeBtn'),headerActions=document.getElementById('headerActions');
 const state={screen:'modeSelect',mode:null,gachaTickets:0,appearanceTickets:0,unlockedAppearances:new Set(),point:0,enemyPoint:0,nextSpBonus:0,battleType:'normal',turn:1,isProcessing:false,skip:false,selectedAlly:0,selectedEnemy:0,pending:null,queue:[null,null,null],floor:0,dungeon:null,difficulty:'normal',dungeonProgress:loadDungeonProgress(),monsterDefeatCounts:loadMonsterDefeatCounts(),clearRecorded:false,bossEnemyIndices:new Set(),soloBossBattle:false,recruits:new Set(),floorResult:null,restRecoveryUsed:false,battleLogs:[],monsterSort:'acquired',monsterSortDir:'asc',partyEditSlot:null,bulkPartySelection:[],detailFrom:'list',fusionParents:[],fusionChoices:[],fusionSelected:null,inheritChoices:[],inheritSelected:[],fusionResult:null,fusionLocked:false,owned:[],discovered:new Set(),party:[],dungeonStartSnapshot:null,lastSavedAt:null,saveLoadError:null,saveBlocked:false};
 function makeOwned(id,level=1,_star=null,skills2=null){const b=monsterDB[id],lv=Math.max(1,level),stats=growthAtLevel(b,lv);return{uid:crypto.randomUUID?.()||Math.random().toString(36),...b,star:b.baseStar,plusValue:0,appearance:'default',level:lv,exp:0,nextExp:requiredExp(lv,b.expGrowth),maxHp:stats.maxHp,hp:stats.maxHp,atk:stats.atk,def:stats.def,spd:stats.spd,skills:skills2??defaultSkills(b),buffAtk:1,buffDef:1,buffAtkTurns:0,buffDefTurns:0}}
@@ -584,7 +609,7 @@ function selectGameMode(mode){
 function home(){
   if(state.fusionLocked)return;
   if(!state.mode){showModeSelection();return}
-state.screen='home';state.fusionLocked=false;saveGame();app.innerHTML=`<div class="card"><div class="title">ホーム</div><div class="muted">${state.mode==='development'?'開発用':'通常プレイ'}</div>${state.saveLoadError?`<div class="save-warning">${state.saveLoadError}</div>`:''}</div><div class="grid menu"><button onclick="showDungeons()">ダンジョン</button><button onclick="showMonsters()">モンスター</button><button onclick="showFusion()">配合</button><button onclick="showBook()">図鑑</button><button onclick="showGacha()">ガチャ<small>チケット ${state.gachaTickets}枚</small></button><button onclick="showDataManagement()">データ管理</button></div><div class="card"><div class="title">現在のパーティ</div>${party().map(x=>`<div class="listitem artwork-list-row">${monsterArtwork(x,'small')}<div><b>${x.name}</b> Lv${x.level} ${starDisplay(x)} ＋${x.plusValue||0}<div class="muted">HP${x.maxHp} 攻${x.atk} 防${x.def} 速${x.spd}</div></div></div>`).join('')}</div>`;updateHeader()}
+state.screen='home';state.fusionLocked=false;saveGame();app.innerHTML=`<div class="card"><div class="title">ホーム</div><div class="muted">${state.mode==='development'?'開発用':'通常プレイ'}</div>${state.saveLoadError?`<div class="save-warning">${state.saveLoadError}</div>`:''}</div><div class="grid menu"><button onclick="showDungeons()">ダンジョン</button><button onclick="showMonsters()">モンスター</button><button onclick="showFusion()">配合</button><button onclick="showSynthesis()">モンスター合成</button><button onclick="showBook()">図鑑</button><button onclick="showGacha()">ガチャ<small>チケット ${state.gachaTickets}枚</small></button><button onclick="showDataManagement()">データ管理</button></div><div class="card"><div class="title">現在のパーティ</div>${party().map(x=>`<div class="listitem artwork-list-row">${monsterArtwork(x,'small')}<div><b>${x.name}</b> Lv${x.level} ${starDisplay(x)} ＋${x.plusValue||0}<div class="muted">HP${x.maxHp} 攻${x.atk} 防${x.def} 速${x.spd}</div></div></div>`).join('')}</div>`;updateHeader()}
 function showGacha(message='',won=false){
   state.screen='gacha';
   state.fusionLocked=false;
@@ -1137,6 +1162,7 @@ function developerAcquireMonster(id){
   showBookDetail(id);
 }
 function key(a,b){return[a,b].sort().join('|')}
+//配合システム
 function showFusion(){
   state.screen='fusion';
   state.fusionParents=[];
@@ -1389,6 +1415,152 @@ function finishFusionResult(){
   state.fusionResult=null;
   home();
 }
+//
+//合成システム
+const SYNTHESIS_EXP_RATE = 0.1;
+const SYNTHESIS_BASE_EXP = 500;
+function totalEarnedExp(monster){
+  let total = monster.exp || 0;
+  for(let lv = 1; lv < monster.level; lv++){
+    total += requiredExp(lv, monster.expGrowth);
+  }
+  return total;
+}
+function synthesisMaterialExp(monster){
+  const totalExp = totalEarnedExp(monster);
+  return Math.floor(
+    (SYNTHESIS_BASE_EXP+totalExp)*SYNTHESIS_EXP_RATE*monster.star
+  );
+}
+function showSynthesis(){
+  state.screen='synthesis';
+  state.synthesisStep='base';
+  state.synthesisBase=null;
+  state.synthesisMaterials=[];
+  renderSynthesis();
+}
+function pickSynthesisBase(uid){
+  state.synthesisBase=uid;
+  state.synthesisMaterials=[];
+  renderSynthesis();
+}
+function confirmSynthesisBase(){
+  if(!state.synthesisBase)return;
+
+  state.synthesisStep='material';
+  renderSynthesis();
+}
+function renderSynthesis(){
+  const baseCandidates=state.owned.filter(x=>x.level<100);
+
+  const materialCandidates=state.owned.filter(
+    x=>x.level<100 && x.uid!==state.synthesisBase && !party().includes(x)
+  );
+  if(state.synthesisStep==='base'){
+    app.innerHTML=`
+      <div class="card" style="padding-bottom:70px;">
+        <div class="title">モンスター合成</div>
+        <div class="muted">合成元にするモンスターを1体選んでください。</div>
+        ${baseCandidates.map(x=>`
+          <div
+            class="listitem choice artwork-list-row ${state.synthesisBase===x.uid?'sel':''}"
+            onclick="pickSynthesisBase('${x.uid}')"
+          >
+            ${monsterArtwork(x,'small')}
+            <div>
+              ${x.name} Lv${x.level} ${starDisplay(x)} ＋${x.plusValue||0}
+            </div>
+          </div>
+        `).join('')}
+        <button
+          class="wide bottom-button"
+          onclick="confirmSynthesisBase()"${state.synthesisBase?'':'disabled'}>決定</button>
+      </div>
+    `;
+  }else{
+    const base = state.owned.find(x => x.uid === state.synthesisBase);
+    const gainedExp = state.synthesisMaterials.reduce((sum, uid)=>{
+      const monster = state.owned.find(x=>x.uid===uid);
+      return sum + synthesisMaterialExp(monster);
+    }, 0);
+    app.innerHTML=`
+      <div class="card" style="padding-bottom:140px;">
+        <div class="title">素材選択</div>
+        <div class="muted">合成元</div>
+        <div class="listitem artwork-list-row">
+         ${monsterArtwork(base,'small')}
+        <div>${base.name} Lv${base.level} ${starDisplay(base)} ＋${base.plusValue||0}</div>
+      </div>
+      <hr>
+      <div class="muted">合成素材にするモンスターを選んでください。</div>
+        ${materialCandidates.map(x=>`
+          <div
+            class="listitem choice artwork-list-row ${state.synthesisMaterials.includes(x.uid)?'sel':''}"
+            onclick="pickSynthesisMaterial('${x.uid}')"
+          >
+            ${monsterArtwork(x,'small')}
+            <div>
+              ${x.name} Lv${x.level} ${starDisplay(x)}
+            </div>
+          </div>
+        `).join('')}
+        <div class="synthesis-footer-bg"></div>
+        <div class="result bottom-exp">
+          <div class="title">獲得経験値</div>
+          <div style="font-size:22px;font-weight:bold;">
+            ＋${gainedExp} EXP
+          </div>
+        </div>
+        <button
+          class="wide bottom-button synthesis-button"
+          onclick="startSynthesis()"
+            ${state.synthesisMaterials.length ? '' : 'disabled'}
+          >合成する</button>
+      </div>
+    `;
+  }
+  updateHeader();
+}
+function pickSynthesisMaterial(uid){
+  const i=state.synthesisMaterials.indexOf(uid);
+  if(i>=0){
+    state.synthesisMaterials.splice(i,1);
+  }else{
+    state.synthesisMaterials.push(uid);
+  }
+  renderSynthesis();
+}
+function startSynthesis(){
+  const base = state.owned.find(
+    x => x.uid === state.synthesisBase
+  );
+  if(!base) return;
+  let gainedExp = 0;
+  for(const uid of state.synthesisMaterials){
+    const monster = state.owned.find(x => x.uid === uid);
+    if(monster){
+      gainedExp += synthesisMaterialExp(monster);
+    }
+  }
+  const levelUps = addMonsterExp(base, gainedExp);
+  for(const uid of state.synthesisMaterials){
+    const index = state.owned.findIndex(x => x.uid === uid);
+    if(index >= 0){
+      state.owned.splice(index, 1);
+    }
+  }
+  state.synthesisBase = null;
+  state.synthesisMaterials = [];
+  saveGame({force:true});
+  alert(
+    `${base.name}に${gainedExp}EXP！\n` +
+    (levelUps.length
+      ? `Lv${levelUps.join(' → Lv')}にレベルアップ！`
+      : '')
+  );
+  showSynthesis();
+}
+//
 const NON_NORMAL_ENCOUNTER_IDS=new Set(['KOKOPI','KOKKORU','COCKATRICE']);
 function dungeonEnemyPool(star){return M.filter(x=>x[4]===star&&!NON_NORMAL_ENCOUNTER_IDS.has(x[0])).map(x=>x[0])}
 async function startDungeon(n,difficulty='normal'){
@@ -1862,40 +2034,51 @@ async function winFloor(){
   const gainedExp=state.enemies.reduce((sum,e)=>sum+e.exp,0);
   const memberResults=[];
   for(const member of party()){
-    const before={level:member.level,exp:member.exp||0,nextExp:member.nextExp||1,maxHp:member.maxHp,atk:member.atk,def:member.def,spd:member.spd};
-    const levelUps=[];
+    const before={
+      level:member.level,
+      exp:member.exp||0,
+      nextExp:member.nextExp||1,
+      maxHp:member.maxHp,
+      atk:member.atk,
+      def:member.def,
+      spd:member.spd
+    };
+    let levelUps=[];
     if(member.hp>0){
-      member.exp+=gainedExp;
-      while(member.exp>=member.nextExp&&member.level<100){
-      member.exp-=member.nextExp;
-        const increase=growthDelta(monsterDB[member.id],member.level,member.level+1);
-        member.level++;
-        levelUps.push(member.level);
-        member.maxHp+=increase.maxHp;
-        member.atk+=increase.atk;
-        member.def+=increase.def;
-        member.spd+=increase.spd;
-        member.nextExp=requiredExp(member.level,member.expGrowth);
-      }
+      levelUps=addMonsterExp(member,gainedExp);
     }
     memberResults.push({
-      uid:member.uid,name:member.name,
-      beforeLevel:before.level,beforeExp:before.exp,beforeNextExp:before.nextExp,
-      afterLevel:member.level,afterExp:member.exp||0,afterNextExp:member.nextExp||1,
-      gained:member.hp>0?gainedExp:0,levelUps,statGains:{maxHp:member.maxHp-before.maxHp,atk:member.atk-before.atk,def:member.def-before.def,spd:member.spd-before.spd}
+      uid:member.uid,
+      name:member.name,
+      beforeLevel:before.level,
+      beforeExp:before.exp,
+      beforeNextExp:before.nextExp,
+      afterLevel:member.level,
+      afterExp:member.exp||0,
+      afterNextExp:member.nextExp||1,
+      gained:member.hp>0 ? gainedExp : 0,
+      levelUps,
+      statGains:{
+        maxHp:member.maxHp-before.maxHp,
+        atk:member.atk-before.atk,
+        def:member.def-before.def,
+        spd:member.spd-before.spd
+      }
     });
   }
-
   const newCandidates=[];
   const rates=difficultyConfig();
   for(const enemy of state.enemies){
-    const recruitChance=enemy.isBoss ? rates.bossRecruitRate : rates.recruitRate;
+    const recruitChance=enemy.isBoss
+      ? rates.bossRecruitRate
+      : rates.recruitRate;
     if(Math.random()<recruitChance){
-      if(!state.recruits.has(enemy.id))newCandidates.push(enemy.id);
+      if(!state.recruits.has(enemy.id)){
+        newCandidates.push(enemy.id);
+      }
       state.recruits.add(enemy.id);
     }
   }
-
   state.floorResult={
     floor:state.floor,
     gainedExp,

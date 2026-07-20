@@ -184,6 +184,55 @@ header{
   padding-top:8px;
   border-bottom:1px solid rgba(255,255,255,.08);
 }
+.bottom-button{
+  position:fixed;
+  left:50%;
+  transform:translateX(-50%);
+  bottom:10px;
+
+  width:min(412px,calc(100vw - 18px));
+  margin:0;
+  z-index:1000;
+}
+.bottom-exp{
+  position:fixed;
+  left:50%;
+  transform:translateX(-50%);
+  bottom:72px;   /* ボタンの少し上 */
+
+  width:min(412px,calc(100vw - 18px));
+
+  z-index:1000;
+}
+.synthesis-button{
+  display:block;
+  background:#b06bca;
+  color:#fff;
+  border:1px solid #666;
+  border-radius:8px;
+  padding:12px;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+}
+.synthesis-button:disabled{
+  opacity:.45;
+  cursor:default;
+}
+.synthesis-footer-bg{
+  position:fixed;
+  left:50%;
+  transform:translateX(-50%);
+  bottom:0;
+  width:min(412px,calc(100vw - 18px));
+  height:140px;      /* 獲得経験値～ボタン全体を覆う */
+  background:#222;
+  z-index:999;
+}
+.bottom-exp,
+.bottom-button{
+  z-index:1000;
+}
 #app{padding-top:4px}
 .sort-row{grid-template-columns:repeat(2,1fr)}
 button:disabled{
