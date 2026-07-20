@@ -442,3 +442,5 @@ button:disabled{
   .synthesis-material-card{padding-bottom:155px}
   .synthesis-material-footer{padding:8px}
 }
+
+.last-dungeon-button{grid-column:1/-1;background:var(--g)}
