@@ -1418,8 +1418,8 @@ function finishFusionResult(){
 }
 //
 //合成システム
-const SYNTHESIS_EXP_RATE = 0.1;
-const SYNTHESIS_BASE_EXP = 500;
+const SYNTHESIS_EXP_RATE = 0.3;
+const SYNTHESIS_BASE_EXP = 1000;
 function totalEarnedExp(monster){
   let total = monster.exp || 0;
   for(let lv = 1; lv < monster.level; lv++){
