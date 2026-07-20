@@ -200,7 +200,7 @@ const MONSTER_DEFEAT_COUNTS_KEY='hissoriRpgMonsterDefeatCountsV1';
 const GAME_SAVE_KEY='hissoriRpgSaveV1';
 const GAME_SAVE_VERSION=4;
 const GACHA_TICKET_DROP_RATE=.01;
-const GACHA_APPEARANCE_TICKET_RATE=.5;
+const GACHA_APPEARANCE_TICKET_RATE=.05;
 const APPEARANCE_CHANGE_MONSTER_IDS=new Set(['VAMPIRE','COCKATRICE']);
 // 配布時に normal / development へ固定する。selector は共通開発元用。
 const BUILD_MODE='normal';
@@ -547,6 +547,7 @@ function updateBackButton(){
   else if(state.screen==='singlePartyChange')handler=()=>showPartyFormation();
   else if(state.screen==='bulkPartySelection')handler=()=>showPartyFormation();
   else if(state.screen==='fusion'&&!state.fusionLocked)handler=()=>home();
+  else if(state.screen==='synthesis')handler=()=>state.synthesisStep==='material'?backToSynthesisBase():home();
   else if(state.screen==='dungeons')handler=()=>home();
   else if(state.screen==='dungeonConfirm')handler=()=>showDungeons();
   else if(state.screen==='book')handler=()=>home();
@@ -1417,8 +1418,8 @@ function finishFusionResult(){
 }
 //
 //合成システム
-const SYNTHESIS_EXP_RATE = 0.3;
-const SYNTHESIS_BASE_EXP = 1000;
+const SYNTHESIS_EXP_RATE = 0.1;
+const SYNTHESIS_BASE_EXP = 500;
 function totalEarnedExp(monster){
   let total = monster.exp || 0;
   for(let lv = 1; lv < monster.level; lv++){
@@ -1465,7 +1466,6 @@ function renderSynthesis(){
     app.innerHTML=`
       <div class="card" style="padding-bottom:70px;">
         <div class="title">モンスター合成</div>
-        <button class="btn-cancel" onclick="home()">戻る</button>
         <div class="muted">合成元にするモンスターを1体選んでください。</div>
         ${baseCandidates.map(x=>`
           <div
@@ -1492,7 +1492,6 @@ function renderSynthesis(){
     app.innerHTML=`
       <div class="card synthesis-material-card">
         <div class="title">素材選択</div>
-        <button class="btn-cancel" onclick="backToSynthesisBase()">戻る</button>
         <div class="muted">合成元</div>
         <div class="listitem artwork-list-row">
          ${monsterArtwork(base,'small')}
