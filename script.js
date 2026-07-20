@@ -281,7 +281,7 @@ function addMonsterExp(member, gainedExp){
 }
 //
 const app=document.getElementById('app'),skipBtn=document.getElementById('skipBtn'),retireBtn=document.getElementById('retireBtn'),backBtn=document.getElementById('backBtn'),homeBtn=document.getElementById('homeBtn'),headerActions=document.getElementById('headerActions');
-const state={screen:'modeSelect',mode:null,gachaTickets:0,appearanceTickets:0,unlockedAppearances:new Set(),point:0,enemyPoint:0,nextSpBonus:0,battleType:'normal',turn:1,isProcessing:false,skip:false,selectedAlly:0,selectedEnemy:0,pending:null,queue:[null,null,null],floor:0,dungeon:null,difficulty:'normal',dungeonProgress:loadDungeonProgress(),monsterDefeatCounts:loadMonsterDefeatCounts(),clearRecorded:false,bossEnemyIndices:new Set(),soloBossBattle:false,recruits:new Map(),floorResult:null,restRecoveryUsed:false,battleLogs:[],monsterSort:'acquired',monsterSortDir:'asc',partyEditSlot:null,bulkPartySelection:[],detailFrom:'list',fusionParents:[],fusionChoices:[],fusionSelected:null,inheritChoices:[],inheritSelected:[],fusionResult:null,fusionLocked:false,owned:[],discovered:new Set(),party:[],dungeonStartSnapshot:null,lastSavedAt:null,saveLoadError:null,saveBlocked:false};
+const state={screen:'modeSelect',mode:null,gachaTickets:0,appearanceTickets:0,unlockedAppearances:new Set(),point:0,enemyPoint:0,nextSpBonus:0,battleType:'normal',turn:1,isProcessing:false,skip:false,selectedAlly:0,selectedEnemy:0,pending:null,queue:[null,null,null],floor:0,dungeon:null,difficulty:'normal',lastDungeonId:null,lastDungeonDifficulty:null,dungeonProgress:loadDungeonProgress(),monsterDefeatCounts:loadMonsterDefeatCounts(),clearRecorded:false,bossEnemyIndices:new Set(),soloBossBattle:false,recruits:new Map(),floorResult:null,restRecoveryUsed:false,battleLogs:[],monsterSort:'acquired',monsterSortDir:'asc',partyEditSlot:null,bulkPartySelection:[],detailFrom:'list',fusionParents:[],fusionChoices:[],fusionSelected:null,inheritChoices:[],inheritSelected:[],fusionResult:null,fusionLocked:false,owned:[],discovered:new Set(),party:[],dungeonStartSnapshot:null,lastSavedAt:null,saveLoadError:null,saveBlocked:false};
 function makeOwned(id,level=1,_star=null,skills2=null){const b=monsterDB[id],lv=Math.max(1,level),stats=growthAtLevel(b,lv);return{uid:crypto.randomUUID?.()||Math.random().toString(36),...b,star:b.baseStar,plusValue:0,appearance:'default',level:lv,exp:0,nextExp:requiredExp(lv,b.expGrowth),maxHp:stats.maxHp,hp:stats.maxHp,atk:stats.atk,def:stats.def,spd:stats.spd,skills:skills2??defaultSkills(b),buffAtk:1,buffDef:1,buffAtkTurns:0,buffDefTurns:0}}
 function defaultSkills(b){const prefix={火:'FIRE',水:'WATER',雷:'THUNDER',自然:'NATURE',闇:'DARK',光:'LIGHT',無:'NEUTRAL'}[b.attribute];const own=`${prefix}_1`;return['NORMAL',own,b.solid].filter((id,i,a)=>skills[id]&&a.indexOf(id)===i)}
 function initialSlimes(){
@@ -317,7 +317,9 @@ function buildSaveData(){
     party:[...state.party],
     discovered:[...state.discovered],
     dungeonProgress:structuredCloneSafe(state.dungeonProgress),
-    monsterDefeatCounts:{...state.monsterDefeatCounts}
+    monsterDefeatCounts:{...state.monsterDefeatCounts},
+    lastDungeonId:state.lastDungeonId,
+    lastDungeonDifficulty:state.lastDungeonDifficulty
   };
 }
 function structuredCloneSafe(value){
@@ -393,6 +395,10 @@ function applySaveData(raw){
   ]);
   if(BUILD_MODE==='development')state.discovered=new Set(Object.keys(monsterDB));
   state.dungeonProgress=normalizeDungeonProgress(raw.dungeonProgress);
+  const savedDungeonId=Number(raw.lastDungeonId);
+  const savedDifficulty=typeof raw.lastDungeonDifficulty==='string'?raw.lastDungeonDifficulty:null;
+  state.lastDungeonId=dungeonInfo(savedDungeonId)?savedDungeonId:null;
+  state.lastDungeonDifficulty=state.lastDungeonId&&DIFFICULTIES[savedDifficulty]?savedDifficulty:null;
   state.monsterDefeatCounts=Object.fromEntries(
     Object.entries(raw.monsterDefeatCounts||{})
       .filter(([id])=>monsterDB[id])
@@ -610,7 +616,14 @@ function selectGameMode(mode){
 function home(){
   if(state.fusionLocked)return;
   if(!state.mode){showModeSelection();return}
-state.screen='home';state.fusionLocked=false;saveGame();app.innerHTML=`<div class="card"><div class="title">ホーム</div><div class="muted">${state.mode==='development'?'開発用':'通常プレイ'}</div>${state.saveLoadError?`<div class="save-warning">${state.saveLoadError}</div>`:''}</div><div class="grid menu"><button onclick="showDungeons()">ダンジョン</button><button onclick="showMonsters()">モンスター</button><button onclick="showFusion()">配合</button><button onclick="showSynthesis()">モンスター合成</button><button onclick="showBook()">図鑑</button><button onclick="showGacha()">ガチャ<small>チケット ${state.gachaTickets}枚</small></button><button onclick="showDataManagement()">データ管理</button></div><div class="card"><div class="title">現在のパーティ</div>${party().map(x=>`<div class="listitem artwork-list-row">${monsterArtwork(x,'small')}<div><b>${x.name}</b> Lv${x.level} ${starDisplay(x)} ＋${x.plusValue||0}<div class="muted">HP${x.maxHp} 攻${x.atk} 防${x.def} 速${x.spd}</div></div></div>`).join('')}</div>`;updateHeader()}
+state.screen='home';state.fusionLocked=false;saveGame();const lastDungeon=state.lastDungeonId?dungeonInfo(state.lastDungeonId):null;const lastDifficulty=state.lastDungeonDifficulty&&DIFFICULTIES[state.lastDungeonDifficulty]?DIFFICULTIES[state.lastDungeonDifficulty]:null;app.innerHTML=`<div class="card"><div class="title">ホーム</div><div class="muted">${state.mode==='development'?'開発用':'通常プレイ'}</div>${state.saveLoadError?`<div class="save-warning">${state.saveLoadError}</div>`:''}</div><div class="grid menu">${lastDungeon&&lastDifficulty?`<button class="last-dungeon-button" onclick="retryLastDungeon()">前回のダンジョンに挑戦<small>${lastDungeon.name}・${lastDifficulty.name}</small></button>`:''}<button onclick="showDungeons()">ダンジョン</button><button onclick="showMonsters()">モンスター</button><button onclick="showFusion()">配合</button><button onclick="showSynthesis()">モンスター合成</button><button onclick="showBook()">図鑑</button><button onclick="showGacha()">ガチャ<small>チケット ${state.gachaTickets}枚</small></button><button onclick="showDataManagement()">データ管理</button></div><div class="card"><div class="title">現在のパーティ</div>${party().map(x=>`<div class="listitem artwork-list-row">${monsterArtwork(x,'small')}<div><b>${x.name}</b> Lv${x.level} ${starDisplay(x)} ＋${x.plusValue||0}<div class="muted">HP${x.maxHp} 攻${x.atk} 防${x.def} 速${x.spd}</div></div></div>`).join('')}</div>`;updateHeader()}
+function retryLastDungeon(){
+  const id=state.lastDungeonId;
+  const difficulty=state.lastDungeonDifficulty;
+  if(!dungeonInfo(id)||!DIFFICULTIES[difficulty]){home();return}
+  if(!difficultyUnlocked(id,difficulty)){confirmDungeonEntry(id);return}
+  startDungeon(id,difficulty);
+}
 function showGacha(message='',won=false){
   state.screen='gacha';
   state.fusionLocked=false;
@@ -1572,10 +1585,12 @@ const NON_NORMAL_ENCOUNTER_IDS=new Set(['KOKOPI','KOKKORU','COCKATRICE']);
 function dungeonEnemyPool(star){return M.filter(x=>x[4]===star&&!NON_NORMAL_ENCOUNTER_IDS.has(x[0])).map(x=>x[0])}
 async function startDungeon(n,difficulty='normal'){
   if(!difficultyUnlocked(n,difficulty))return;
+  state.lastDungeonId=n;
+  state.lastDungeonDifficulty=DIFFICULTIES[difficulty]?difficulty:'normal';
   saveGame({force:true});
   state.dungeonStartSnapshot=buildSaveData();
   state.dungeon=dungeonInfo(n);
-  state.difficulty=DIFFICULTIES[difficulty]?difficulty:'normal';
+  state.difficulty=state.lastDungeonDifficulty;
   state.floor=1;
   state.recruits=new Map();
   state.floorResult=null;
@@ -2172,7 +2187,7 @@ function showRecruit(cleared=true){
   skipBtn.style.display='none';
 }
 function takeRecruit(id,level=1){const joinLevel=Math.max(1,Math.min(100,Math.floor(Number(level)||1)));state.owned.push(makeOwned(id,joinLevel));state.discovered.add(id);saveGame({force:true});alert(`${monsterDB[id].name} Lv${joinLevel}が仲間になった！`);home()}
-skipBtn.onclick=()=>{state.skip=true;skipBtn.disabled=true};homeBtn.onclick=()=>{if(!state.fusionLocked&&state.screen!=='battle')home()};window.home=home;window.showDungeons=showDungeons;window.showMonsters=showMonsters;window.showFusion=showFusion;window.showBook=showBook;window.showBookDetail=showBookDetail;window.showModeSelection=showModeSelection;window.selectGameMode=selectGameMode;window.showDataManagement=showDataManagement;window.manualSave=manualSave;window.exportSaveData=exportSaveData;window.importSaveData=importSaveData;window.deleteSaveData=deleteSaveData;window.developerAcquireMonster=developerAcquireMonster;window.developerLevelUp=developerLevelUp;window.startDungeon=startDungeon;window.pickParent=pickParent;window.startFusion=startFusion;window.beginFusion=beginFusion;window.confirmFusionChoice=confirmFusionChoice;window.cancelFusionChoice=cancelFusionChoice;window.showInheritance=showInheritance;window.toggleInheritance=toggleInheritance;window.completeFusion=completeFusion;window.finishFusionResult=finishFusionResult;window.toggleParty=toggleParty;window.showMonsterDetail=showMonsterDetail;window.selectEnemy=selectEnemy;window.selectAlly=selectAlly;window.chooseSkill=chooseSkill;window.executeTurn=executeTurn;window.takeRecruit=takeRecruit;
+skipBtn.onclick=()=>{state.skip=true;skipBtn.disabled=true};homeBtn.onclick=()=>{if(!state.fusionLocked&&state.screen!=='battle')home()};window.home=home;window.retryLastDungeon=retryLastDungeon;window.showDungeons=showDungeons;window.showMonsters=showMonsters;window.showFusion=showFusion;window.showBook=showBook;window.showBookDetail=showBookDetail;window.showModeSelection=showModeSelection;window.selectGameMode=selectGameMode;window.showDataManagement=showDataManagement;window.manualSave=manualSave;window.exportSaveData=exportSaveData;window.importSaveData=importSaveData;window.deleteSaveData=deleteSaveData;window.developerAcquireMonster=developerAcquireMonster;window.developerLevelUp=developerLevelUp;window.startDungeon=startDungeon;window.pickParent=pickParent;window.startFusion=startFusion;window.beginFusion=beginFusion;window.confirmFusionChoice=confirmFusionChoice;window.cancelFusionChoice=cancelFusionChoice;window.showInheritance=showInheritance;window.toggleInheritance=toggleInheritance;window.completeFusion=completeFusion;window.finishFusionResult=finishFusionResult;window.toggleParty=toggleParty;window.showMonsterDetail=showMonsterDetail;window.selectEnemy=selectEnemy;window.selectAlly=selectAlly;window.chooseSkill=chooseSkill;window.executeTurn=executeTurn;window.takeRecruit=takeRecruit;
 window.addEventListener('beforeunload',()=>saveGame());
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveGame()});
 if(loadedExistingSave)home();
