@@ -34,7 +34,7 @@ NATURE_3:{id:'NATURE_3',name:'グランドヴァイン',star:3,type:'attack',att
 NATURE_4:{id:'NATURE_4',name:'フォレストレイジ',star:4,type:'attack',attribute:'自然',cost:4,multiplier:3,target:'enemySingle'},
 NATURE_5:{id:'NATURE_5',name:'ストーム',star:5,type:'attack',attribute:'自然',cost:5,multiplier:2.2,target:'enemyAll'},
 DARK_1:{id:'DARK_1',name:'ダーク',star:1,type:'attack',attribute:'闇',cost:1,multiplier:1.2,target:'enemySingle'},
-DARK_2:{id:'DARK_2',name:'ハイダーク',star:2,type:'attack',attribute:'闇',cost:1,multiplier:1.5,target:'enemySingle'},
+DARK_2:{id:'DARK_2',name:'ハイダーク',star:2,type:'attack',attribute:'闇',cost:1,multiplier:1.2,target:'enemySingle'},
 DARK_3:{id:'DARK_3',name:'グランドダーク',star:3,type:'attack',attribute:'闇',cost:3,multiplier:2.8,target:'enemySingle'},
 DARK_4:{id:'DARK_4',name:'ファントムアタック',star:4,type:'attack',attribute:'闇',cost:2,multiplier:2.4,target:'enemySingle'},
 DARK_5:{id:'DARK_5',name:'カオス',star:5,type:'attack',attribute:'闇',cost:6,multiplier:2.7,target:'enemyAll'},
@@ -281,7 +281,7 @@ function addMonsterExp(member, gainedExp){
 }
 //
 const app=document.getElementById('app'),skipBtn=document.getElementById('skipBtn'),retireBtn=document.getElementById('retireBtn'),backBtn=document.getElementById('backBtn'),homeBtn=document.getElementById('homeBtn'),headerActions=document.getElementById('headerActions');
-const state={screen:'modeSelect',mode:null,gachaTickets:0,appearanceTickets:0,unlockedAppearances:new Set(),point:0,enemyPoint:0,nextSpBonus:0,battleType:'normal',turn:1,isProcessing:false,skip:false,selectedAlly:0,selectedEnemy:0,pending:null,queue:[null,null,null],floor:0,dungeon:null,difficulty:'normal',dungeonProgress:loadDungeonProgress(),monsterDefeatCounts:loadMonsterDefeatCounts(),clearRecorded:false,bossEnemyIndices:new Set(),soloBossBattle:false,recruits:[],floorResult:null,restRecoveryUsed:false,battleLogs:[],monsterSort:'acquired',monsterSortDir:'asc',partyEditSlot:null,bulkPartySelection:[],detailFrom:'list',fusionParents:[],fusionChoices:[],fusionSelected:null,inheritChoices:[],inheritSelected:[],fusionResult:null,fusionLocked:false,owned:[],discovered:new Set(),party:[],dungeonStartSnapshot:null,lastSavedAt:null,saveLoadError:null,saveBlocked:false};
+const state={screen:'modeSelect',mode:null,gachaTickets:0,appearanceTickets:0,unlockedAppearances:new Set(),point:0,enemyPoint:0,nextSpBonus:0,battleType:'normal',turn:1,isProcessing:false,skip:false,selectedAlly:0,selectedEnemy:0,pending:null,queue:[null,null,null],floor:0,dungeon:null,difficulty:'normal',dungeonProgress:loadDungeonProgress(),monsterDefeatCounts:loadMonsterDefeatCounts(),clearRecorded:false,bossEnemyIndices:new Set(),soloBossBattle:false,recruits:new Set(),floorResult:null,restRecoveryUsed:false,battleLogs:[],monsterSort:'acquired',monsterSortDir:'asc',partyEditSlot:null,bulkPartySelection:[],detailFrom:'list',fusionParents:[],fusionChoices:[],fusionSelected:null,inheritChoices:[],inheritSelected:[],fusionResult:null,fusionLocked:false,owned:[],discovered:new Set(),party:[],dungeonStartSnapshot:null,lastSavedAt:null,saveLoadError:null,saveBlocked:false};
 function makeOwned(id,level=1,_star=null,skills2=null){const b=monsterDB[id],lv=Math.max(1,level),stats=growthAtLevel(b,lv);return{uid:crypto.randomUUID?.()||Math.random().toString(36),...b,star:b.baseStar,plusValue:0,appearance:'default',level:lv,exp:0,nextExp:requiredExp(lv,b.expGrowth),maxHp:stats.maxHp,hp:stats.maxHp,atk:stats.atk,def:stats.def,spd:stats.spd,skills:skills2??defaultSkills(b),buffAtk:1,buffDef:1,buffAtkTurns:0,buffDefTurns:0}}
 function defaultSkills(b){const prefix={火:'FIRE',水:'WATER',雷:'THUNDER',自然:'NATURE',闇:'DARK',光:'LIGHT',無:'NEUTRAL'}[b.attribute];const own=`${prefix}_1`;return['NORMAL',own,b.solid].filter((id,i,a)=>skills[id]&&a.indexOf(id)===i)}
 function initialSlimes(){
@@ -1570,7 +1570,7 @@ async function startDungeon(n,difficulty='normal'){
   state.dungeon=dungeonInfo(n);
   state.difficulty=DIFFICULTIES[difficulty]?difficulty:'normal';
   state.floor=1;
-  state.recruits=[];
+  state.recruits=new Set();
   state.floorResult=null;
   state.restRecoveryUsed=false;
   state.clearRecorded=false;
@@ -1705,7 +1705,7 @@ function enemyLevelForFloor(){
 function enemyExperience(base,level,isBoss,soloBoss){
   const levelExp=10+5*level+.5*level*level;
   const starRate=1+.1*((base.baseStar||1)-1);
-  const bossRate=soloBoss?3:isBoss?1.5:1;
+  const bossRate=soloBoss?3:isBoss?1.2:1;
   return Math.max(1,Math.round(levelExp*starRate*bossRate*(base.expMultiplier||1)));
 }
 function enemyUnit(id,index){
@@ -1716,7 +1716,7 @@ function enemyUnit(id,index){
   const isBoss=state.bossEnemyIndices.has(index);
   const soloBoss=isBoss&&state.soloBossBattle;
   const hp=scaled(levelStats.maxHp)*(soloBoss?3:isBoss?2:1);
-  const statRate=soloBoss?1.5:1;
+  const statRate=soloBoss?1.2:1;
   return{...b,hp,maxHp:hp,atk:Math.round(scaled(levelStats.atk)*statRate),def:Math.round(scaled(levelStats.def)*statRate),spd:Math.round(scaled(levelStats.spd)*statRate),level,isBoss,isMidBoss:false,actionsPerTurn:soloBoss?2:1,fearTurns:0,petrified:false,petrifyTurns:0,exp:enemyExperience(b,level,isBoss,soloBoss),buffDef:1};
 }
 function startFloor(){
@@ -2073,10 +2073,10 @@ async function winFloor(){
       ? rates.bossRecruitRate
       : rates.recruitRate;
     if(Math.random()<recruitChance){
-      if(!state.recruits.some(r=>r.id===enemy.id)){
+      if(!state.recruits.has(enemy.id)){
         newCandidates.push(enemy.id);
       }
-      state.recruits.push({id:enemy.id,level:enemy.level});
+      state.recruits.add(enemy.id);
     }
   }
   state.floorResult={
@@ -2125,7 +2125,7 @@ async function continueAfterResult(){
 function showDefeat(retired=false){
   restoreDungeonStartSnapshot();
   state.screen='defeat';
-  state.recruits=[];
+  state.recruits=new Set();
   state.floor=0;
   state.dungeon=null;
   state.enemies=[];
@@ -2155,16 +2155,16 @@ function showRecruit(cleared=true){
   }
   state.dungeonStartSnapshot=null;
   saveGame({force:true});
-  const recruits=[...state.recruits];
+  const ids=[...state.recruits];
   app.innerHTML=`<div class="card result"><div class="title">${cleared?'ダンジョンクリア！':'途中帰還'}</div>
   <div class="muted">${cleared?`${difficultyConfig().name}をクリアしました（累計${state.dungeonProgress[state.dungeon.id][state.difficulty]}回）。`:'ボス撃破・ダンジョンクリアにはカウントされません。'}</div>
-  <div class="muted">${recruits.length?'仲間候補から1体選択してください。':'今回は仲間候補なし'}</div>
-  ${recruits.length?`<div class="candidate-grid">${recruits.map(r=>`<button class="artwork-candidate" onclick="takeRecruit('${r.id}',${r.level})">${monsterArtwork(r.id,'medium')}<span>${monsterDB[r.id].name} Lv${r.level}</span></button>`).join('')}</div>`:'<button class="wide" onclick="home()">ホームへ戻る</button>'}
+  <div class="muted">${ids.length?'仲間候補から1体選択してください。':'今回は仲間候補なし'}</div>
+  ${ids.length?`<div class="candidate-grid">${ids.map(id=>`<button class="artwork-candidate" onclick="takeRecruit('${id}')">${monsterArtwork(id,'medium')}<span>${monsterDB[id].name}</span></button>`).join('')}</div>`:'<button class="wide" onclick="home()">ホームへ戻る</button>'}
   </div>`;
-  homeBtn.style.display=recruits.length?'none':'inline-block';
+  homeBtn.style.display=ids.length?'none':'inline-block';
   skipBtn.style.display='none';
 }
-function takeRecruit(id,level){state.owned.push(makeOwned(id,level));state.discovered.add(id);saveGame({force:true});alert(`${monsterDB[id].name}が仲間になった！`);home()}
+function takeRecruit(id){state.owned.push(makeOwned(id,1));state.discovered.add(id);saveGame({force:true});alert(`${monsterDB[id].name}が仲間になった！`);home()}
 skipBtn.onclick=()=>{state.skip=true;skipBtn.disabled=true};homeBtn.onclick=()=>{if(!state.fusionLocked&&state.screen!=='battle')home()};window.home=home;window.showDungeons=showDungeons;window.showMonsters=showMonsters;window.showFusion=showFusion;window.showBook=showBook;window.showBookDetail=showBookDetail;window.showModeSelection=showModeSelection;window.selectGameMode=selectGameMode;window.showDataManagement=showDataManagement;window.manualSave=manualSave;window.exportSaveData=exportSaveData;window.importSaveData=importSaveData;window.deleteSaveData=deleteSaveData;window.developerAcquireMonster=developerAcquireMonster;window.developerLevelUp=developerLevelUp;window.startDungeon=startDungeon;window.pickParent=pickParent;window.startFusion=startFusion;window.beginFusion=beginFusion;window.confirmFusionChoice=confirmFusionChoice;window.cancelFusionChoice=cancelFusionChoice;window.showInheritance=showInheritance;window.toggleInheritance=toggleInheritance;window.completeFusion=completeFusion;window.finishFusionResult=finishFusionResult;window.toggleParty=toggleParty;window.showMonsterDetail=showMonsterDetail;window.selectEnemy=selectEnemy;window.selectAlly=selectAlly;window.chooseSkill=chooseSkill;window.executeTurn=executeTurn;window.takeRecruit=takeRecruit;
 window.addEventListener('beforeunload',()=>saveGame());
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveGame()});
