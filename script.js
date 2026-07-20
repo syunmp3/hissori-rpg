@@ -1417,8 +1417,8 @@ function finishFusionResult(){
 }
 //
 //合成システム
-const SYNTHESIS_EXP_RATE = 0.1;
-const SYNTHESIS_BASE_EXP = 500;
+const SYNTHESIS_EXP_RATE = 0.3;
+const SYNTHESIS_BASE_EXP = 1000;
 function totalEarnedExp(monster){
   let total = monster.exp || 0;
   for(let lv = 1; lv < monster.level; lv++){
@@ -1450,6 +1450,11 @@ function confirmSynthesisBase(){
   state.synthesisStep='material';
   renderSynthesis();
 }
+function backToSynthesisBase(){
+  state.synthesisStep='base';
+  state.synthesisMaterials=[];
+  renderSynthesis();
+}
 function renderSynthesis(){
   const baseCandidates=state.owned.filter(x=>x.level<100);
 
@@ -1460,6 +1465,7 @@ function renderSynthesis(){
     app.innerHTML=`
       <div class="card" style="padding-bottom:70px;">
         <div class="title">モンスター合成</div>
+        <button class="btn-cancel" onclick="home()">戻る</button>
         <div class="muted">合成元にするモンスターを1体選んでください。</div>
         ${baseCandidates.map(x=>`
           <div
@@ -1484,8 +1490,9 @@ function renderSynthesis(){
       return sum + synthesisMaterialExp(monster);
     }, 0);
     app.innerHTML=`
-      <div class="card" style="padding-bottom:140px;">
+      <div class="card synthesis-material-card">
         <div class="title">素材選択</div>
+        <button class="btn-cancel" onclick="backToSynthesisBase()">戻る</button>
         <div class="muted">合成元</div>
         <div class="listitem artwork-list-row">
          ${monsterArtwork(base,'small')}
@@ -1504,18 +1511,19 @@ function renderSynthesis(){
             </div>
           </div>
         `).join('')}
-        <div class="synthesis-footer-bg"></div>
-        <div class="result bottom-exp">
-          <div class="title">獲得経験値</div>
-          <div style="font-size:22px;font-weight:bold;">
-            ＋${gainedExp} EXP
+        <div class="synthesis-material-footer app-chrome app-chrome-bottom">
+          <div class="result synthesis-material-exp">
+            <div class="title">獲得経験値</div>
+            <div style="font-size:22px;font-weight:bold;">
+              ＋${gainedExp} EXP
+            </div>
           </div>
+          <button
+            class="wide synthesis-button"
+            onclick="startSynthesis()"
+              ${state.synthesisMaterials.length ? '' : 'disabled'}
+            >合成する</button>
         </div>
-        <button
-          class="wide bottom-button synthesis-button"
-          onclick="startSynthesis()"
-            ${state.synthesisMaterials.length ? '' : 'disabled'}
-          >合成する</button>
       </div>
     `;
   }
@@ -1731,7 +1739,6 @@ function startFloor(){
   state.pending=null;
   state.battleLogs=[];
   const enemyIds=enemyIdsForFloor();
-  enemyIds.forEach(id=>state.discovered.add(id));
   state.soloBossBattle=enemyIds.length===1&&state.bossEnemyIndices.size===1;
   state.enemies=enemyIds.map((id,index)=>enemyUnit(id,index));
   party().forEach(x=>{x.buffAtk=1;x.buffDef=1;x.fearTurns=0;x.petrified=false;x.petrifyTurns=0});

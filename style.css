@@ -176,13 +176,23 @@
   background:#5b5132;
 }
 
+/* 画面上部・下部で共有するゲームUIの外装 */
+.app-chrome{
+  background:#222;
+  border-color:rgba(255,255,255,.08);
+  box-shadow:0 4px 12px rgba(0,0,0,.18);
+}
+.app-chrome-top{
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.app-chrome-bottom{
+  border-top:1px solid rgba(255,255,255,.08);
+}
 header{
   position:sticky;
   top:0;
   z-index:100;
-  background:#222;
   padding-top:8px;
-  border-bottom:1px solid rgba(255,255,255,.08);
 }
 .bottom-button{
   position:fixed;
@@ -398,4 +408,33 @@ button:disabled{
 @media(max-width:420px){
   .gacha-rate{grid-template-columns:1fr}
   .appearance-preview{align-items:flex-start}
+}
+
+
+/* 合成：素材選択画面の下部操作をカード内にまとめる */
+.synthesis-material-card{
+  min-height:calc(100vh - 70px);
+  padding-bottom:165px;
+}
+.synthesis-material-footer{
+  position:fixed;
+  left:50%;
+  transform:translateX(-50%);
+  bottom:9px;
+  width:min(412px,calc(100vw - 18px));
+  padding:10px 11px 11px;
+  border-radius:0 0 11px 11px;
+  box-shadow:0 -8px 14px rgba(0,0,0,.28);
+  z-index:1000;
+}
+.synthesis-material-exp{
+  margin:0;
+  padding:10px;
+}
+.synthesis-material-footer .synthesis-button{
+  margin-top:7px;
+}
+@media(max-height:720px){
+  .synthesis-material-card{padding-bottom:155px}
+  .synthesis-material-footer{padding:8px}
 }
