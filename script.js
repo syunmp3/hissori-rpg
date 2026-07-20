@@ -258,7 +258,7 @@ function growthDelta(base,fromLevel,toLevel){
 const app=document.getElementById('app'),skipBtn=document.getElementById('skipBtn'),retireBtn=document.getElementById('retireBtn'),backBtn=document.getElementById('backBtn'),homeBtn=document.getElementById('homeBtn'),headerActions=document.getElementById('headerActions');
 const state={screen:'modeSelect',mode:null,gachaTickets:0,appearanceTickets:0,unlockedAppearances:new Set(),point:0,enemyPoint:0,nextSpBonus:0,battleType:'normal',turn:1,isProcessing:false,skip:false,selectedAlly:0,selectedEnemy:0,pending:null,queue:[null,null,null],floor:0,dungeon:null,difficulty:'normal',dungeonProgress:loadDungeonProgress(),monsterDefeatCounts:loadMonsterDefeatCounts(),clearRecorded:false,bossEnemyIndices:new Set(),soloBossBattle:false,recruits:new Set(),floorResult:null,restRecoveryUsed:false,battleLogs:[],monsterSort:'acquired',monsterSortDir:'asc',partyEditSlot:null,bulkPartySelection:[],detailFrom:'list',fusionParents:[],fusionChoices:[],fusionSelected:null,inheritChoices:[],inheritSelected:[],fusionResult:null,fusionLocked:false,owned:[],discovered:new Set(),party:[],dungeonStartSnapshot:null,lastSavedAt:null,saveLoadError:null,saveBlocked:false};
 function makeOwned(id,level=1,_star=null,skills2=null){const b=monsterDB[id],lv=Math.max(1,level),stats=growthAtLevel(b,lv);return{uid:crypto.randomUUID?.()||Math.random().toString(36),...b,star:b.baseStar,plusValue:0,appearance:'default',level:lv,exp:0,nextExp:requiredExp(lv,b.expGrowth),maxHp:stats.maxHp,hp:stats.maxHp,atk:stats.atk,def:stats.def,spd:stats.spd,skills:skills2??defaultSkills(b),buffAtk:1,buffDef:1,buffAtkTurns:0,buffDefTurns:0}}
-function defaultSkills(b){const prefix={火:'FIRE',水:'WATER',雷:'THUNDER',自然:'NATURE',闇:'DARK',光:'LIGHT',無:'NEUTRAL'}[b.attribute];const own=`${prefix}_1`;return['NORMAL',own,'LIGHT_1',b.solid].filter((id,i,a)=>skills[id]&&a.indexOf(id)===i)}
+function defaultSkills(b){const prefix={火:'FIRE',水:'WATER',雷:'THUNDER',自然:'NATURE',闇:'DARK',光:'LIGHT',無:'NEUTRAL'}[b.attribute];const own=`${prefix}_1`;return['NORMAL',own,b.solid].filter((id,i,a)=>skills[id]&&a.indexOf(id)===i)}
 function initialSlimes(){
   return['SLIME_BLUE','SLIME_RED','SLIME_YELLOW','SLIME_GREEN'].map(id=>makeOwned(id,1));
 }
@@ -697,9 +697,33 @@ function deleteSaveData(){
   location.reload();
 }
 function dungeonInfo(id){
-  return id===1
-    ?{id:1,name:'始まりの草原',max:10,restFloor:5,description:'1～4層・6～9層 戦闘 / 5層 休息 / 10層 ボス'}
-    :{id:2,name:'獣の洞窟',max:10,restFloor:5,description:'1～4層・6～9層 戦闘 / 5層 休息 / 10層 ボス'};
+  switch(id){
+    case 1:
+      return {
+        id:1,
+        name:'始まりの草原',
+        max:10,
+        restFloor:5,
+        levelFunc: floor=>{
+          if(floor<=4) return Math.ceil(floor/2);
+          return Math.ceil((floor-1)/2);
+        },
+        description:'...'
+      };
+
+    case 2:
+      return {
+        id:2,
+        name:'獣の洞窟',
+        max:10,
+        restFloor:5,
+        levelFunc: floor=>{
+          if(floor<=4) return 5 + Math.ceil(floor/2);
+          return 5 + Math.ceil((floor-1)/2);
+        },
+        description:'...'
+      };
+  }
 }
 function showDungeons(){
   state.screen='dungeons';
@@ -1503,11 +1527,8 @@ function enemyIdsForFloor(){
   return ids;
 }
 function enemyLevelForFloor(){
-  let baseLevel;
-  if(state.dungeon?.id!==1)baseLevel=state.floor;
-  else if(state.floor<=4)baseLevel=Math.ceil(state.floor/2);
-  else baseLevel=Math.ceil((state.floor-1)/2);
-  return Math.min(100,baseLevel+difficultyConfig().levelBonus);
+  const baseLevel = state.dungeon.levelFunc(state.floor);
+  return Math.min(100, baseLevel + difficultyConfig().levelBonus);
 }
 function enemyExperience(base,level,isBoss,soloBoss){
   const levelExp=10+5*level+.5*level*level;
