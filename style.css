@@ -191,8 +191,12 @@
 header{
   position:sticky;
   top:0;
-  z-index:100;
-  padding-top:8px;
+  z-index:1000;
+  height:57px;
+  margin:-9px -9px 0;
+  padding:9px 9px 0;
+  background:#222;
+  isolation:isolate;
 }
 .bottom-button{
   position:fixed;
