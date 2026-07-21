@@ -198,9 +198,9 @@ const DIFFICULTIES={
 const DUNGEON_PROGRESS_KEY='hissoriRpgDungeonProgressV1';
 const MONSTER_DEFEAT_COUNTS_KEY='hissoriRpgMonsterDefeatCountsV1';
 const GAME_SAVE_KEY='hissoriRpgSaveV1';
-const GAME_SAVE_VERSION=4;
+const GAME_SAVE_VERSION=5;
 const GACHA_TICKET_DROP_RATE=.01;
-const GACHA_APPEARANCE_TICKET_RATE=.05;
+const GACHA_RATES={EXP_DROP:.50,EXP_CRYSTAL:.10,EXP_ORB:.05,APPEARANCE_TICKET:.05,MISS:.30};
 const APPEARANCE_CHANGE_MONSTER_IDS=new Set(['VAMPIRE','COCKATRICE']);
 // 配布時に normal / development へ固定する。selector は共通開発元用。
 const BUILD_MODE='normal';
@@ -281,7 +281,20 @@ function addMonsterExp(member, gainedExp){
 }
 //
 const app=document.getElementById('app'),skipBtn=document.getElementById('skipBtn'),retireBtn=document.getElementById('retireBtn'),backBtn=document.getElementById('backBtn'),homeBtn=document.getElementById('homeBtn'),headerActions=document.getElementById('headerActions');
-const state={screen:'modeSelect',mode:null,gachaTickets:0,appearanceTickets:0,unlockedAppearances:new Set(),point:0,enemyPoint:0,nextSpBonus:0,battleType:'normal',turn:1,isProcessing:false,skip:false,selectedAlly:0,selectedEnemy:0,pending:null,queue:[null,null,null],floor:0,dungeon:null,difficulty:'normal',lastDungeonId:null,lastDungeonDifficulty:null,dungeonProgress:loadDungeonProgress(),monsterDefeatCounts:loadMonsterDefeatCounts(),clearRecorded:false,bossEnemyIndices:new Set(),soloBossBattle:false,recruits:new Map(),floorResult:null,restRecoveryUsed:false,battleLogs:[],monsterSort:'acquired',monsterSortDir:'asc',partyEditSlot:null,bulkPartySelection:[],detailFrom:'list',fusionParents:[],fusionChoices:[],fusionSelected:null,inheritChoices:[],inheritSelected:[],fusionResult:null,fusionLocked:false,owned:[],discovered:new Set(),party:[],dungeonStartSnapshot:null,lastSavedAt:null,saveLoadError:null,saveBlocked:false};
+const ITEM_DB={
+  EXP_DROP:{id:'EXP_DROP',name:'経験のしずく',star:1,exp:1000,description:'合成素材として使用すると、1個につき1000EXPを獲得する。'},
+  EXP_CRYSTAL:{id:'EXP_CRYSTAL',name:'経験の結晶',star:2,exp:5000,description:'合成素材として使用すると、1個につき5000EXPを獲得する。'},
+  EXP_ORB:{id:'EXP_ORB',name:'経験の宝珠',star:3,exp:10000,description:'合成素材として使用すると、1個につき10000EXPを獲得する。'}
+};
+const ITEM_IDS=Object.keys(ITEM_DB);
+function emptyItemInventory(){return Object.fromEntries(ITEM_IDS.map(id=>[id,0]))}
+function normalizeItems(value){
+  const items=emptyItemInventory();
+  for(const id of ITEM_IDS)items[id]=Math.max(0,Math.floor(Number(value?.[id])||0));
+  return items;
+}
+function itemStarDisplay(item){return '★'.repeat(item.star)}
+const state={screen:'modeSelect',mode:null,gachaTickets:0,appearanceTickets:0,items:emptyItemInventory(),unlockedAppearances:new Set(),point:0,enemyPoint:0,nextSpBonus:0,battleType:'normal',turn:1,isProcessing:false,skip:false,selectedAlly:0,selectedEnemy:0,pending:null,queue:[null,null,null],floor:0,dungeon:null,difficulty:'normal',lastDungeonId:null,lastDungeonDifficulty:null,dungeonProgress:loadDungeonProgress(),monsterDefeatCounts:loadMonsterDefeatCounts(),clearRecorded:false,bossEnemyIndices:new Set(),soloBossBattle:false,recruits:new Map(),floorResult:null,restRecoveryUsed:false,battleLogs:[],monsterSort:'acquired',monsterSortDir:'asc',partyEditSlot:null,bulkPartySelection:[],detailFrom:'list',fusionParents:[],fusionChoices:[],fusionSelected:null,inheritChoices:[],inheritSelected:[],fusionResult:null,fusionLocked:false,owned:[],discovered:new Set(),party:[],dungeonStartSnapshot:null,lastSavedAt:null,saveLoadError:null,saveBlocked:false};
 function makeOwned(id,level=1,_star=null,skills2=null){const b=monsterDB[id],lv=Math.max(1,level),stats=growthAtLevel(b,lv);return{uid:crypto.randomUUID?.()||Math.random().toString(36),...b,star:b.baseStar,plusValue:0,appearance:'default',level:lv,exp:0,nextExp:requiredExp(lv,b.expGrowth),maxHp:stats.maxHp,hp:stats.maxHp,atk:stats.atk,def:stats.def,spd:stats.spd,skills:skills2??defaultSkills(b),buffAtk:1,buffDef:1,buffAtkTurns:0,buffDefTurns:0}}
 function defaultSkills(b){const prefix={火:'FIRE',水:'WATER',雷:'THUNDER',自然:'NATURE',闇:'DARK',光:'LIGHT',無:'NEUTRAL'}[b.attribute];const own=`${prefix}_1`;return['NORMAL',own,b.solid].filter((id,i,a)=>skills[id]&&a.indexOf(id)===i)}
 function initialSlimes(){
@@ -312,6 +325,7 @@ function buildSaveData(){
     mode:state.mode,
     gachaTickets:state.gachaTickets,
     appearanceTickets:state.appearanceTickets,
+    items:{...state.items},
     unlockedAppearances:[...state.unlockedAppearances],
     owned:state.owned.map(persistentMonster),
     party:[...state.party],
@@ -382,6 +396,7 @@ function applySaveData(raw){
   state.party=[...new Set(partyIds)];
   state.gachaTickets=Math.max(0,Math.floor(Number(raw.gachaTickets)||0));
   state.appearanceTickets=Math.max(0,Math.floor(Number(raw.appearanceTickets)||0));
+  state.items=normalizeItems(raw.items);
   state.unlockedAppearances=new Set(
     (Array.isArray(raw.unlockedAppearances)?raw.unlockedAppearances:[])
       .filter(id=>APPEARANCE_CHANGE_MONSTER_IDS.has(id))
@@ -570,6 +585,7 @@ function updateBackButton(){
   else if(state.screen==='book')handler=()=>home();
   else if(state.screen==='bookDetail')handler=()=>showBook();
   else if(state.screen==='gacha')handler=()=>home();
+  else if(state.screen==='items')handler=()=>home();
   else if(state.screen==='dataManagement')handler=()=>home();
   else visible=false;
 
@@ -617,6 +633,7 @@ function selectGameMode(mode){
   state.monsterDefeatCounts={};
   state.gachaTickets=0;
   state.appearanceTickets=0;
+  state.items=emptyItemInventory();
   state.unlockedAppearances=new Set();
   state.lastSavedAt=null;
   state.saveLoadError=null;
@@ -627,13 +644,57 @@ function selectGameMode(mode){
 function home(){
   if(state.fusionLocked)return;
   if(!state.mode){showModeSelection();return}
-state.screen='home';state.fusionLocked=false;saveGame();const lastDungeon=state.lastDungeonId?dungeonInfo(state.lastDungeonId):null;const lastDifficulty=state.lastDungeonDifficulty&&DIFFICULTIES[state.lastDungeonDifficulty]?DIFFICULTIES[state.lastDungeonDifficulty]:null;app.innerHTML=`<div class="card"><div class="title">ホーム</div><div class="muted">${state.mode==='development'?'開発用':'通常プレイ'}</div>${state.saveLoadError?`<div class="save-warning">${state.saveLoadError}</div>`:''}</div><div class="grid menu">${lastDungeon&&lastDifficulty?`<button class="last-dungeon-button" onclick="retryLastDungeon()">前回のダンジョンに挑戦<small>${lastDungeon.name}・${lastDifficulty.name}</small></button>`:''}<button onclick="showDungeons()">ダンジョン</button><button onclick="showMonsters()">モンスター</button><button onclick="showFusion()">配合</button><button onclick="showSynthesis()">モンスター合成</button><button onclick="showBook()">図鑑</button><button onclick="showGacha()">ガチャ<small>チケット ${state.gachaTickets}枚</small></button><button onclick="showDataManagement()">データ管理</button></div><div class="card"><div class="title">現在のパーティ</div>${party().map(x=>`<div class="listitem artwork-list-row">${monsterArtwork(x,'small')}<div><b>${x.name}</b> Lv${x.level} ${starDisplay(x)} ＋${x.plusValue||0}<div class="muted">HP${x.maxHp} 攻${x.atk} 防${x.def} 速${x.spd}</div></div></div>`).join('')}</div>`;updateHeader()}
+state.screen='home';state.fusionLocked=false;saveGame();const lastDungeon=state.lastDungeonId?dungeonInfo(state.lastDungeonId):null;const lastDifficulty=state.lastDungeonDifficulty&&DIFFICULTIES[state.lastDungeonDifficulty]?DIFFICULTIES[state.lastDungeonDifficulty]:null;app.innerHTML=`<div class="card"><div class="title">ホーム</div><div class="muted">${state.mode==='development'?'開発用':'通常プレイ'}</div>${state.saveLoadError?`<div class="save-warning">${state.saveLoadError}</div>`:''}</div><div class="grid menu">${lastDungeon&&lastDifficulty?`<button class="last-dungeon-button" onclick="retryLastDungeon()">前回のダンジョンに挑戦<small>${lastDungeon.name}・${lastDifficulty.name}</small></button>`:''}<button onclick="showDungeons()">ダンジョン</button><button onclick="showMonsters()">モンスター</button><button onclick="showItems()">アイテム</button><button onclick="showFusion()">配合</button><button onclick="showSynthesis()">モンスター合成</button><button onclick="showBook()">図鑑</button><button onclick="showGacha()">ガチャ<small>チケット ${state.gachaTickets}枚</small></button><button onclick="showDataManagement()">データ管理</button></div><div class="card"><div class="title">現在のパーティ</div>${party().map(x=>`<div class="listitem artwork-list-row">${monsterArtwork(x,'small')}<div><b>${x.name}</b> Lv${x.level} ${starDisplay(x)} ＋${x.plusValue||0}<div class="muted">HP${x.maxHp} 攻${x.atk} 防${x.def} 速${x.spd}</div></div></div>`).join('')}</div>`;updateHeader()}
 function retryLastDungeon(){
   const id=state.lastDungeonId;
   const difficulty=state.lastDungeonDifficulty;
   if(!dungeonInfo(id)||!DIFFICULTIES[difficulty]){home();return}
   if(!difficultyUnlocked(id,difficulty)){confirmDungeonEntry(id);return}
   startDungeon(id,difficulty);
+}
+function showItems(message=''){
+  state.screen='items';
+  const expTotal=ITEM_IDS.reduce((sum,id)=>sum+(state.items[id]||0),0);
+  const total=expTotal+state.gachaTickets+state.appearanceTickets;
+  const ticketRows=`
+    <div class="listitem item-list-row ticket-item-row">
+      <div class="item-icon">🎫</div>
+      <div class="item-list-main"><b>ガチャチケット</b><div class="muted">ガチャを1回引くために使用する。</div></div>
+      <div class="item-count">×${state.gachaTickets}</div>
+    </div>
+    <div class="listitem item-list-row ticket-item-row">
+      <div class="item-icon">🎟️</div>
+      <div class="item-list-main"><b>見た目変更チケット</b><div class="muted">対象モンスターの別の見た目を解放するために使用する。</div></div>
+      <div class="item-count">×${state.appearanceTickets}</div>
+    </div>`;
+  app.innerHTML=`
+    <div class="card item-inventory-card">
+      <div class="title">所持アイテム</div>
+      <div class="muted">所持数合計：${total}個</div>
+      ${message?`<div class="save-message">${message}</div>`:''}
+      <div class="item-section-title">チケット</div>
+      ${ticketRows}
+      <div class="item-section-title">経験値素材</div>
+      ${ITEM_IDS.map(id=>{
+        const item=ITEM_DB[id];
+        return `<div class="listitem item-list-row">
+          <div class="item-star">${itemStarDisplay(item)}</div>
+          <div class="item-list-main">
+            <b>${item.name}</b>
+            <div class="muted">${item.description}</div>
+          </div>
+          <div class="item-count">×${state.items[id]||0}</div>
+        </div>`;
+      }).join('')}
+      ${state.mode==='development'?'<button class="wide dev-action" onclick="developerAddExpItems()">開発用：経験値素材を各10個追加</button>':''}
+    </div>`;
+  updateHeader();
+}
+function developerAddExpItems(){
+  if(state.mode!=='development')return;
+  for(const id of ITEM_IDS)state.items[id]=(state.items[id]||0)+10;
+  saveGame({force:true});
+  showItems('経験値素材を各10個追加しました。');
 }
 function showGacha(message='',won=false){
   state.screen='gacha';
@@ -642,14 +703,22 @@ function showGacha(message='',won=false){
     <div class="title">ガチャ</div>
     <div class="gacha-ticket-count">ガチャチケット <b>${state.gachaTickets}枚</b></div>
     <div class="muted">1回につきガチャチケットを1枚使用します。</div>
-    <div class="gacha-rate">
-      <div><b>5%</b><span>見た目変更チケット ×1</span></div>
-      <div><b>95%</b><span>はずれ（何もなし）</span></div>
+    <div class="gacha-content-title">──────── ガチャ内容 ────────</div>
+    <div class="gacha-rate-list">
+      <div class="gacha-rate-row"><span>🟢 ★1 経験のしずく</span><b>50%</b></div>
+      <div class="gacha-rate-row"><span>🔵 ★2 経験の結晶</span><b>10%</b></div>
+      <div class="gacha-rate-row"><span>🟣 ★3 経験の宝珠</span><b>5%</b></div>
+      <div class="gacha-rate-gap"></div>
+      <div class="gacha-rate-row"><span>🎟️ 見た目変更チケット</span><b>5%</b></div>
+      <div class="gacha-rate-row gacha-rate-miss"><span>📦 はずれ</span><b>30%</b></div>
     </div>
+    <div class="gacha-content-title">──────────────────────</div>
     ${message?`<div class="gacha-result ${won?'win':'miss'}">${message}</div>`:''}
     <button class="wide btn-next" onclick="drawGacha()" ${state.gachaTickets<1?'disabled':''}>1回引く</button>
-    <div class="appearance-ticket-count">見た目変更チケット：<b>${state.appearanceTickets}枚</b></div>
-    <div class="muted">図鑑のヴァンパイアまたはコカトリスに使用できます。</div>
+    <div class="gacha-owned-summary">
+      <span>🎫 ガチャ ${state.gachaTickets}枚</span>
+      <span>🎟️ 見た目変更 ${state.appearanceTickets}枚</span>
+    </div>
     ${state.mode==='development'?'<button class="wide dev-action" onclick="developerAddGachaTickets()">開発用：ガチャチケットを10枚追加</button>':''}
   </div>`;
   updateHeader();
@@ -657,10 +726,24 @@ function showGacha(message='',won=false){
 function drawGacha(){
   if(state.gachaTickets<1)return;
   state.gachaTickets--;
-  const won=Math.random()<GACHA_APPEARANCE_TICKET_RATE;
-  if(won)state.appearanceTickets++;
+  const roll=Math.random();
+  let cursor=0,message='はずれ。何も出ませんでした。',won=false;
+  cursor+=GACHA_RATES.EXP_DROP;
+  if(roll<cursor){state.items.EXP_DROP++;message='経験のしずく ×1 を入手！';won=true;}
+  else{
+    cursor+=GACHA_RATES.EXP_CRYSTAL;
+    if(roll<cursor){state.items.EXP_CRYSTAL++;message='経験の結晶 ×1 を入手！';won=true;}
+    else{
+      cursor+=GACHA_RATES.EXP_ORB;
+      if(roll<cursor){state.items.EXP_ORB++;message='経験の宝珠 ×1 を入手！';won=true;}
+      else{
+        cursor+=GACHA_RATES.APPEARANCE_TICKET;
+        if(roll<cursor){state.appearanceTickets++;message='見た目変更チケット ×1 を入手！';won=true;}
+      }
+    }
+  }
   saveGame({force:true});
-  showGacha(won?'見た目変更チケット ×1 を入手！':'はずれ。何も出ませんでした。',won);
+  showGacha(message,won);
 }
 function developerAddGachaTickets(){
   if(state.mode!=='development')return;
@@ -1446,149 +1529,147 @@ const SYNTHESIS_EXP_RATE = 0.3;
 const SYNTHESIS_BASE_EXP = 500;
 function totalEarnedExp(monster){
   let total = monster.exp || 0;
-  for(let lv = 1; lv < monster.level; lv++){
-    total += requiredExp(lv, monster.expGrowth);
-  }
+  for(let lv = 1; lv < monster.level; lv++)total += requiredExp(lv, monster.expGrowth);
   return total;
 }
 function synthesisMaterialExp(monster){
   const totalExp = totalEarnedExp(monster);
-  return Math.floor(
-    (SYNTHESIS_BASE_EXP+totalExp)*SYNTHESIS_EXP_RATE*monster.star
-  );
+  return Math.floor((SYNTHESIS_BASE_EXP+totalExp)*SYNTHESIS_EXP_RATE*monster.star);
 }
 function showSynthesis(){
   state.screen='synthesis';
   state.synthesisStep='base';
   state.synthesisBase=null;
   state.synthesisMaterials=[];
+  state.synthesisItemAmounts=emptyItemInventory();
+  state.synthesisMaterialTab='monster';
   renderSynthesis();
 }
 function pickSynthesisBase(uid){
   state.synthesisBase=uid;
   state.synthesisMaterials=[];
+  state.synthesisItemAmounts=emptyItemInventory();
   renderSynthesis();
 }
 function confirmSynthesisBase(){
   if(!state.synthesisBase)return;
-
   state.synthesisStep='material';
   renderSynthesis();
 }
 function backToSynthesisBase(){
   state.synthesisStep='base';
   state.synthesisMaterials=[];
+  state.synthesisItemAmounts=emptyItemInventory();
   renderSynthesis();
+}
+function setSynthesisMaterialTab(tab){
+  if(tab!=='monster'&&tab!=='item')return;
+  state.synthesisMaterialTab=tab;
+  renderSynthesis();
+}
+function selectedSynthesisItemExp(){
+  return ITEM_IDS.reduce((sum,id)=>sum+(state.synthesisItemAmounts?.[id]||0)*ITEM_DB[id].exp,0);
+}
+function selectedSynthesisMaterialExp(){
+  const monsterExp=(state.synthesisMaterials||[]).reduce((sum,uid)=>{
+    const monster=state.owned.find(x=>x.uid===uid);
+    return sum+(monster?synthesisMaterialExp(monster):0);
+  },0);
+  return monsterExp+selectedSynthesisItemExp();
+}
+function selectedSynthesisCount(){
+  return (state.synthesisMaterials?.length||0)+ITEM_IDS.reduce((sum,id)=>sum+(state.synthesisItemAmounts?.[id]||0),0);
 }
 function renderSynthesis(){
   const baseCandidates=state.owned.filter(x=>x.level<100);
-
-  const materialCandidates=state.owned.filter(
-    x=>x.level<100 && x.uid!==state.synthesisBase && !party().includes(x)
-  );
+  const materialCandidates=state.owned.filter(x=>x.level<100&&x.uid!==state.synthesisBase&&!party().includes(x));
   if(state.synthesisStep==='base'){
     app.innerHTML=`
       <div class="card" style="padding-bottom:70px;">
         <div class="title">モンスター合成</div>
         <div class="muted">合成元にするモンスターを1体選んでください。</div>
-        ${baseCandidates.map(x=>`
-          <div
-            class="listitem choice artwork-list-row ${state.synthesisBase===x.uid?'sel':''}"
-            onclick="pickSynthesisBase('${x.uid}')"
-          >
-            ${monsterArtwork(x,'small')}
-            <div>
-              ${x.name} Lv${x.level} ${starDisplay(x)} ＋${x.plusValue||0}
-            </div>
-          </div>
-        `).join('')}
-        <button
-          class="wide bottom-button"
-          onclick="confirmSynthesisBase()"${state.synthesisBase?'':'disabled'}>決定</button>
-      </div>
-    `;
+        ${baseCandidates.map(x=>`<div class="listitem choice artwork-list-row ${state.synthesisBase===x.uid?'sel':''}" onclick="pickSynthesisBase('${x.uid}')">${monsterArtwork(x,'small')}<div>${x.name} Lv${x.level} ${starDisplay(x)} ＋${x.plusValue||0}</div></div>`).join('')}
+        <button class="wide bottom-button" onclick="confirmSynthesisBase()"${state.synthesisBase?'':' disabled'}>決定</button>
+      </div>`;
   }else{
-    const base = state.owned.find(x => x.uid === state.synthesisBase);
-    const gainedExp = state.synthesisMaterials.reduce((sum, uid)=>{
-      const monster = state.owned.find(x=>x.uid===uid);
-      return sum + synthesisMaterialExp(monster);
-    }, 0);
+    const base=state.owned.find(x=>x.uid===state.synthesisBase);
+    if(!base){showSynthesis();return}
+    const gainedExp=selectedSynthesisMaterialExp();
+    const itemAmounts=state.synthesisItemAmounts||emptyItemInventory();
+    const monsterPanel=materialCandidates.length
+      ?materialCandidates.map(x=>`<div class="listitem choice artwork-list-row ${state.synthesisMaterials.includes(x.uid)?'sel':''}" onclick="pickSynthesisMaterial('${x.uid}')">${monsterArtwork(x,'small')}<div>${x.name} Lv${x.level} ${starDisplay(x)}<div class="muted">獲得EXP：${synthesisMaterialExp(x)}</div></div></div>`).join('')
+      :'<div class="listitem muted">使用できるモンスター素材がいません。</div>';
+    const itemPanel=ITEM_IDS.map(id=>{
+      const item=ITEM_DB[id],owned=state.items[id]||0,amount=Math.min(itemAmounts[id]||0,owned);
+      return `<div class="listitem synthesis-item-row">
+        <div class="synthesis-item-info"><div class="item-star">${itemStarDisplay(item)}</div><div><b>${item.name}</b><div class="muted">1個：${item.exp}EXP　所持：${owned}個</div></div></div>
+        <div class="item-amount-controls">
+          <button class="mini" onclick="changeSynthesisItemAmount('${id}',-1)" ${amount<=0?'disabled':''}>－</button>
+          <button class="item-amount-value" onclick="setSynthesisItemAmount('${id}',${owned})" ${owned<=0?'disabled':''}>${amount}</button>
+          <button class="mini" onclick="changeSynthesisItemAmount('${id}',1)" ${amount>=owned?'disabled':''}>＋</button>
+        </div>
+      </div>`;
+    }).join('');
     app.innerHTML=`
       <div class="card synthesis-material-card">
         <div class="title">素材選択</div>
         <div class="muted">合成元</div>
-        <div class="listitem artwork-list-row">
-         ${monsterArtwork(base,'small')}
-        <div>${base.name} Lv${base.level} ${starDisplay(base)} ＋${base.plusValue||0}</div>
-      </div>
-      <hr>
-      <div class="muted">合成素材にするモンスターを選んでください。</div>
-        ${materialCandidates.map(x=>`
-          <div
-            class="listitem choice artwork-list-row ${state.synthesisMaterials.includes(x.uid)?'sel':''}"
-            onclick="pickSynthesisMaterial('${x.uid}')"
-          >
-            ${monsterArtwork(x,'small')}
-            <div>
-              ${x.name} Lv${x.level} ${starDisplay(x)}
-            </div>
-          </div>
-        `).join('')}
-        <div class="synthesis-material-footer app-chrome app-chrome-bottom">
-          <div class="result synthesis-material-exp">
-            <div class="title">獲得経験値</div>
-            <div style="font-size:22px;font-weight:bold;">
-              ＋${gainedExp} EXP
-            </div>
-          </div>
-          <button
-            class="wide synthesis-button"
-            onclick="startSynthesis()"
-              ${state.synthesisMaterials.length ? '' : 'disabled'}
-            >合成する</button>
+        <div class="listitem artwork-list-row">${monsterArtwork(base,'small')}<div>${base.name} Lv${base.level} ${starDisplay(base)} ＋${base.plusValue||0}</div></div>
+        <div class="synthesis-tabs">
+          <button class="${state.synthesisMaterialTab==='monster'?'active':''}" onclick="setSynthesisMaterialTab('monster')">モンスター<span>${state.synthesisMaterials.length}体</span></button>
+          <button class="${state.synthesisMaterialTab==='item'?'active':''}" onclick="setSynthesisMaterialTab('item')">アイテム<span>${ITEM_IDS.reduce((sum,id)=>sum+(itemAmounts[id]||0),0)}個</span></button>
         </div>
-      </div>
-    `;
+        <div class="muted">${state.synthesisMaterialTab==='monster'?'合成素材にするモンスターを選んでください。':'使用する個数を選んでください。数字を押すと所持数を一括選択します。'}</div>
+        ${state.synthesisMaterialTab==='monster'?monsterPanel:itemPanel}
+        <div class="synthesis-material-footer app-chrome app-chrome-bottom">
+          <div class="result synthesis-material-exp"><div class="title">獲得経験値</div><div style="font-size:22px;font-weight:bold;">＋${gainedExp} EXP</div></div>
+          <button class="wide synthesis-button" onclick="startSynthesis()" ${selectedSynthesisCount()?'':'disabled'}>合成する</button>
+        </div>
+      </div>`;
   }
   updateHeader();
 }
 function pickSynthesisMaterial(uid){
   const i=state.synthesisMaterials.indexOf(uid);
-  if(i>=0){
-    state.synthesisMaterials.splice(i,1);
-  }else{
-    state.synthesisMaterials.push(uid);
-  }
+  if(i>=0)state.synthesisMaterials.splice(i,1);else state.synthesisMaterials.push(uid);
   renderSynthesis();
 }
+function setSynthesisItemAmount(id,amount){
+  if(!ITEM_DB[id])return;
+  if(!state.synthesisItemAmounts)state.synthesisItemAmounts=emptyItemInventory();
+  state.synthesisItemAmounts[id]=Math.max(0,Math.min(state.items[id]||0,Math.floor(Number(amount)||0)));
+  renderSynthesis();
+}
+function changeSynthesisItemAmount(id,delta){
+  setSynthesisItemAmount(id,(state.synthesisItemAmounts?.[id]||0)+delta);
+}
 function startSynthesis(){
-  const base = state.owned.find(
-    x => x.uid === state.synthesisBase
-  );
-  if(!base) return;
-  let gainedExp = 0;
-  for(const uid of state.synthesisMaterials){
-    const monster = state.owned.find(x => x.uid === uid);
-    if(monster){
-      gainedExp += synthesisMaterialExp(monster);
-    }
+  const base=state.owned.find(x=>x.uid===state.synthesisBase);
+  if(!base)return;
+  const validMonsterIds=(state.synthesisMaterials||[]).filter(uid=>state.owned.some(x=>x.uid===uid&&x.uid!==base.uid&&!party().includes(x)));
+  let gainedExp=validMonsterIds.reduce((sum,uid)=>{
+    const monster=state.owned.find(x=>x.uid===uid);
+    return sum+(monster?synthesisMaterialExp(monster):0);
+  },0);
+  const usedItems={};
+  for(const id of ITEM_IDS){
+    const amount=Math.max(0,Math.min(state.items[id]||0,Math.floor(Number(state.synthesisItemAmounts?.[id])||0)));
+    usedItems[id]=amount;
+    gainedExp+=amount*ITEM_DB[id].exp;
   }
-  const levelUps = addMonsterExp(base, gainedExp);
-  for(const uid of state.synthesisMaterials){
-    const index = state.owned.findIndex(x => x.uid === uid);
-    if(index >= 0){
-      state.owned.splice(index, 1);
-    }
+  if(gainedExp<=0)return;
+  const levelUps=addMonsterExp(base,gainedExp);
+  for(const uid of validMonsterIds){
+    const index=state.owned.findIndex(x=>x.uid===uid);
+    if(index>=0)state.owned.splice(index,1);
   }
-  state.synthesisBase = null;
-  state.synthesisMaterials = [];
+  for(const id of ITEM_IDS)state.items[id]=Math.max(0,(state.items[id]||0)-usedItems[id]);
+  state.synthesisBase=null;
+  state.synthesisMaterials=[];
+  state.synthesisItemAmounts=emptyItemInventory();
   saveGame({force:true});
-  alert(
-    `${base.name}に${gainedExp}EXP！\n` +
-    (levelUps.length
-      ? `Lv${levelUps.join(' → Lv')}にレベルアップ！`
-      : '')
-  );
+  alert(`${base.name}に${gainedExp}EXP！
+`+(levelUps.length?`Lv${levelUps.join(' → Lv')}にレベルアップ！`:''));
   showSynthesis();
 }
 //

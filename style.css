@@ -446,3 +446,34 @@ button:disabled{
 .last-dungeon-button{grid-column:1/-1;background:var(--g)}
 
 .damage-log.critical{color:#ffd84d}.damage-log.miss{color:#aaa}.damage-popup.critical{color:#ffd84d;font-size:22px}.damage-popup.miss{color:#aaa;font-size:19px;letter-spacing:.08em}
+
+
+/* β1.4 アイテム・経験値素材 */
+.item-list-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:9px;align-items:center}
+.item-star{color:var(--y);font-weight:900;white-space:nowrap}
+.item-list-main{min-width:0}
+.item-count{font-size:17px;font-weight:900;white-space:nowrap}
+.synthesis-tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:12px 0 8px}
+.synthesis-tabs button{background:#444}
+.synthesis-tabs button.active{background:var(--a);outline:2px solid #9db5ff}
+.synthesis-tabs span{display:block;margin-top:2px;font-size:9px;opacity:.8}
+.synthesis-item-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.synthesis-item-info{display:flex;align-items:center;gap:9px;min-width:0}
+.item-amount-controls{display:grid;grid-template-columns:38px 48px 38px;gap:5px;align-items:center;flex:none}
+.item-amount-controls .mini{margin:0;min-height:36px;padding:5px}
+.item-amount-value{min-height:36px;padding:5px;background:#555;font-size:15px}
+@media(max-width:380px){.synthesis-item-row{align-items:flex-start;flex-direction:column}.item-amount-controls{align-self:flex-end}}
+
+/* β1.5 ガチャ・アイテム表示 */
+.item-section-title{margin:16px 0 7px;padding-bottom:5px;border-bottom:1px solid #555;font-weight:900;text-align:left}
+.item-icon{width:38px;text-align:center;font-size:21px}
+.ticket-item-row{grid-template-columns:38px minmax(0,1fr) auto}
+.gacha-content-title{margin:14px 0 8px;color:#aaa;font-size:12px;white-space:nowrap;overflow:hidden}
+.gacha-rate-list{display:flex;flex-direction:column;gap:7px;margin:4px 0;text-align:left}
+.gacha-rate-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid #555;border-radius:9px;background:var(--p2)}
+.gacha-rate-row span{font-size:14px;font-weight:800}
+.gacha-rate-row b{color:var(--y);font-size:17px;white-space:nowrap}
+.gacha-rate-row.gacha-rate-miss{opacity:.78}
+.gacha-rate-row.gacha-rate-miss b{color:#bbb}
+.gacha-rate-gap{height:4px}
+.gacha-owned-summary{display:flex;justify-content:center;flex-wrap:wrap;gap:8px 14px;margin:12px 0;font-size:13px;color:#ccc}
