@@ -446,6 +446,17 @@ function restoreDungeonStartSnapshot(){
   applySaveData(snapshot);
   saveGame({force:true});
 }
+function preserveDungeonExperienceInSnapshot(){
+  if(!state.dungeonStartSnapshot?.owned)return;
+  const currentByUid=new Map(state.owned.map(monster=>[monster.uid,monster]));
+  for(const savedMonster of state.dungeonStartSnapshot.owned){
+    const current=currentByUid.get(savedMonster.uid);
+    if(!current)continue;
+    savedMonster.level=current.level;
+    savedMonster.exp=current.exp||0;
+  }
+  state.dungeonStartSnapshot.savedAt=new Date().toISOString();
+}
 const loadedExistingSave=loadGame();
 const party=()=>state.party.map(u=>state.owned.find(x=>x.uid===u)).filter(Boolean);
 function color(a){return({火:'#e55b50',水:'#45aee8',雷:'#e5d14a',自然:'#59b765',闇:'#7752aa',光:'#eee6a8',無:'#999'})[a]}
@@ -1889,7 +1900,15 @@ function dmg(a,d,s){
     ?s.randomMultiplier[Math.floor(Math.random()*s.randomMultiplier.length)]
     :(s.multiplier??1);
   if(multiplier===0)return 0;
-  return Math.max(1,Math.round(a.atk*(a.buffAtk||1)*multiplier*attackPassive*adv(a.attribute,s.attribute,d.attribute)*100/(100+d.def*(d.buffDef||1))*defensePassive))
+  const randomRate=.9+Math.random()*.2;
+  return Math.max(1,Math.round(a.atk*(a.buffAtk||1)*multiplier*attackPassive*adv(a.attribute,s.attribute,d.attribute)*100/(100+d.def*(d.buffDef||1))*defensePassive*randomRate))
+}
+function attackResult(a,d,s){
+  const isNormal=s.id==='NORMAL';
+  if(isNormal&&Math.random()<.05)return{damage:0,miss:true,critical:false};
+  const critical=Math.random()<.05;
+  const base=dmg(a,d,s);
+  return{damage:critical?Math.max(1,Math.round(base*1.5)):base,miss:false,critical};
 }
 function passiveLifestealRate(unit){
   let rate=0;
@@ -1987,11 +2006,23 @@ async function allyAct(a,q){
 async function enemyAct(e){
   const solidSkill=skills[e.solid];
   const usable=solidSkill&&solidSkill.active!==false&&solidSkill.type!=='passive'&&solidSkill.type!=='storeSp';
-  let s=usable&&state.enemyPoint>=solidSkill.cost?solidSkill:skills.NORMAL;
+  let s=skills.NORMAL;
+  if(usable&&state.enemyPoint>=solidSkill.cost&&Math.random()<0.5){
+    if(solidSkill.type==='heal'){
+      const needHeal=state.enemies.some(x=>x.hp>0&&x.hp/x.maxHp<=0.7);
+      if(needHeal)s=solidSkill;
+    }else if(solidSkill.type==='status'){
+      const aliveTargets=party().filter(x=>x.hp>0);
+      const status=solidSkill.status;
+      if(aliveTargets.some(x=>!(x.status&&x.status[status]>0)))s=solidSkill;
+    }else{
+      s=solidSkill;
+    }
+  }
   if(s!==skills.NORMAL)state.enemyPoint-=s.cost;
 
   if(s.type==='heal'){
-    const living=state.enemies.filter(x=>x.hp>0);
+    const living=state.enemies.filter(x=>x.hp>0&&x.hp/x.maxHp<=0.7);
     if(!living.length)return;
     const target=[...living].sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];
     log(`${e.name}の${s.name}！`);
@@ -2008,9 +2039,14 @@ async function enemyAct(e){
 
   const alive=party().map((x,i)=>({x,i})).filter(z=>z.x.hp>0);
   if(!alive.length)return;
+  let targetPool=alive.map(z=>z.x);
+  if(s.type==='status'&&s.status){
+    const cand=targetPool.filter(x=>!(x.status&&x.status[s.status]>0));
+    if(cand.length)targetPool=cand;
+  }
   const targets=s.target==='enemyAll'
-    ?alive.map(z=>z.x)
-    :[alive[Math.floor(Math.random()*alive.length)].x];
+    ?targetPool
+    :[targetPool[Math.floor(Math.random()*targetPool.length)]];
 
   log(`${e.name}の${s.name}！`);
   await wait(DELAY);
@@ -2087,6 +2123,9 @@ async function winFloor(){
       }
     });
   }
+  // 各層で獲得した経験値だけは、敗北・リタイア時にも失われないよう記録する。
+  // HP、ドロップ、仲間候補などは開始時点のままなので、経験値以外は従来どおり失われる。
+  preserveDungeonExperienceInSnapshot();
   const newCandidates=[];
   const rates=difficultyConfig();
   for(const enemy of state.enemies){
@@ -2158,7 +2197,7 @@ function showDefeat(retired=false){
   app.innerHTML=`<div class="card result">
     <div class="title">敗北……</div>
     <div class="muted">${retired?'リタイアしました。敗北扱いになります。':'ダンジョン攻略に失敗しました。'}</div>
-    <p>今回の仲間候補は失われます。</p>
+    <p>勝利した層で獲得した経験値は保持されます。仲間候補やドロップは失われます。</p>
     <button class="wide btn-next" onclick="returnHomeAfterDefeat()">ホームへ戻る</button>
   </div>`;
   skipBtn.style.display='none';
@@ -2222,7 +2261,7 @@ function effectiveness(sa,ta){const r=matchupMultiplier(sa,ta);return r>1?'weak'
 function battleEl(side,u){const i=side==='enemy'?state.enemies.indexOf(u):party().indexOf(u);return document.querySelector(`.battle-unit[data-side="${side}"][data-index="${i}"]`)}
 async function attackMotion(side,u){const e=battleEl(side,u);if(!e||state.skip)return;e.classList.add(side==='ally'?'attack-up':'attack-down');await wait(240);e.classList.remove('attack-up','attack-down')}
 function updateBattleHp(side,u){const e=battleEl(side,u);if(!e)return;const bar=e.querySelector('.hp span'),text=e.querySelector('.hp-text');if(bar)requestAnimationFrame(()=>bar.style.width=`${hpRate(u)*100}%`);if(text)text.textContent=`${u.hp}/${u.maxHp}`;if(u.hp<=0)e.classList.add('dead')}
-async function damageEffect(side,u,n,s){const e=battleEl(side,u),type=effectiveness(s.attribute,u.attribute);if(e){e.classList.remove('hit-shake');void e.offsetWidth;e.classList.add('hit-shake');const p=document.createElement('div'),icon=s.attribute!=='無'?attributeIconFiles[s.attribute]:null;p.className=`damage-popup ${type}`;p.innerHTML=`${icon?`<img src="assets/icons/${icon}" alt="">`:''}<span>${n}</span>`;e.appendChild(p);setTimeout(()=>p.remove(),850)}updateBattleHp(side,u);log(`<span class="damage-log ${type}">${u.name} に ${n}ダメージ！${type==='weak'?' 弱点！':type==='resist'?' 耐性':''}</span>`);await wait(360)}
+async function damageEffect(side,u,result,s){const e=battleEl(side,u),type=effectiveness(s.attribute,u.attribute),n=result.damage;if(e){const p=document.createElement('div'),icon=!result.miss&&s.attribute!=='無'?attributeIconFiles[s.attribute]:null;if(!result.miss){e.classList.remove('hit-shake');void e.offsetWidth;e.classList.add('hit-shake')}p.className=`damage-popup ${result.miss?'miss':result.critical?'critical':type}`;p.innerHTML=result.miss?'<span>MISS</span>':`${icon?`<img src="assets/icons/${icon}" alt="">`:''}<span>${result.critical?'会心！ ':''}${n}</span>`;e.appendChild(p);setTimeout(()=>p.remove(),850)}updateBattleHp(side,u);if(result.miss)log(`<span class="damage-log miss">${u.name} への攻撃は外れた！</span>`);else log(`<span class="damage-log ${result.critical?'critical':type}">${result.critical?'会心の一撃！ ':''}${u.name} に ${n}ダメージ！${type==='weak'?' 弱点！':type==='resist'?' 耐性':''}</span>`);await wait(360)}
 function canReceiveFear(source,target){
   const sourceLevel=source.level||1,targetLevel=target.level||1;
   return !target.isBoss&&!target.isMidBoss&&targetLevel<sourceLevel;
@@ -2292,15 +2331,15 @@ async function allyAct(a,q){
       for(let h=0;h<(s.hits||1);h++){
         const alive=state.enemies.filter(x=>x.hp>0);
         if(!alive.length)break;
-        const t=alive[Math.floor(Math.random()*alive.length)],before=t.hp,n=dmg(a,t,s);
-        t.hp=Math.max(0,t.hp-n);
-        await damageEffect('enemy',t,n,s);
+        const t=alive[Math.floor(Math.random()*alive.length)],before=t.hp,result=attackResult(a,t,s);
+        t.hp=Math.max(0,t.hp-result.damage);
+        await damageEffect('enemy',t,result,s);
         recordAttackRecovery(a,before-t.hp,s,'ally');
-        tryApplyFear(a,t,s);
+        if(!result.miss)tryApplyFear(a,t,s);
       }
     }else{
       const ts=s.target==='enemyAll'?state.enemies.filter(x=>x.hp>0):s.randomTarget?[sample(state.enemies.filter(x=>x.hp>0),1)[0]]:[state.enemies[q.target]?.hp>0?state.enemies[q.target]:state.enemies.find(x=>x.hp>0)];
-      for(const t of ts.filter(Boolean)){for(let h=0;h<(s.hits||1)&&t.hp>0;h++){const before=t.hp,n=dmg(a,t,s);t.hp=Math.max(0,t.hp-n);await damageEffect('enemy',t,n,s);recordAttackRecovery(a,before-t.hp,s,'ally')}tryApplyFear(a,t,s)}
+      for(const t of ts.filter(Boolean)){let landed=false;for(let h=0;h<(s.hits||1)&&t.hp>0;h++){const before=t.hp,result=attackResult(a,t,s);t.hp=Math.max(0,t.hp-result.damage);await damageEffect('enemy',t,result,s);recordAttackRecovery(a,before-t.hp,s,'ally');if(!result.miss)landed=true}if(landed)tryApplyFear(a,t,s)}
     }
     applySelfCost(a,s);await wait(DELAY);
   }else if(s.type==='debuff'){
@@ -2348,22 +2387,24 @@ async function enemyAct(e){
     for(let h=0;h<(s.hits||1);h++){
       const currentAlive=party().filter(x=>x.hp>0);
       if(!currentAlive.length)break;
-      const t=currentAlive[Math.floor(Math.random()*currentAlive.length)],before=t.hp,n=dmg(e,t,s);
-      t.hp=Math.max(0,t.hp-n);
-      await damageEffect('ally',t,n,s);
+      const t=currentAlive[Math.floor(Math.random()*currentAlive.length)],before=t.hp,result=attackResult(e,t,s);
+      t.hp=Math.max(0,t.hp-result.damage);
+      await damageEffect('ally',t,result,s);
       recordAttackRecovery(e,before-t.hp,s,'enemy');
-      tryApplyFear(e,t,s);
+      if(!result.miss)tryApplyFear(e,t,s);
     }
   }else{
     const ts=s.target==='enemyAll'?alive:[alive[Math.floor(Math.random()*alive.length)]];
     for(const t of ts){
+      let landed=false;
       for(let h=0;h<(s.hits||1)&&t.hp>0;h++){
-        const before=t.hp,n=dmg(e,t,s);
-        t.hp=Math.max(0,t.hp-n);
-        await damageEffect('ally',t,n,s);
+        const before=t.hp,result=attackResult(e,t,s);
+        t.hp=Math.max(0,t.hp-result.damage);
+        await damageEffect('ally',t,result,s);
         recordAttackRecovery(e,before-t.hp,s,'enemy');
+        if(!result.miss)landed=true;
       }
-      tryApplyFear(e,t,s);
+      if(landed)tryApplyFear(e,t,s);
     }
   }
   applySelfCost(e,s);
