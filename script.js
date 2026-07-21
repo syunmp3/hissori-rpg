@@ -1189,9 +1189,9 @@ function showFusion(){
   renderFusion();
 }
 function renderFusion(){
-  const eligible=state.owned.filter(x=>x.level>=20);
+  const eligible=state.owned.filter(x=>x.level>=10);
   app.innerHTML=`<div class="card"><div class="title">配合</div>
-  <div class="muted">Lv20以上の2体を選び、「配合開始」を押してください。</div>
+  <div class="muted">Lv10以上の2体を選び、「配合開始」を押してください。</div>
   ${eligible.map(x=>`<div class="listitem choice artwork-list-row ${state.fusionParents.includes(x.uid)?'sel':''}" onclick="pickParent('${x.uid}')">${monsterArtwork(x,'small')}<div>${x.name} Lv${x.level} ${starDisplay(x)} ＋${x.plusValue||0}</div></div>`).join('')}
   <button class="wide" onclick="startFusion()" ${state.fusionParents.length!==2?'disabled':''}>配合開始</button></div>`;
   updateHeader();
@@ -1350,7 +1350,7 @@ function toggleInheritance(id){
   renderInheritance();
 }
 function fusionPlusValue(parentA,parentB){
-  return Math.min(20,Math.max(parentA.plusValue||0,parentB.plusValue||0)+1);
+  return Math.min(10,Math.max(parentA.plusValue||0,parentB.plusValue||0)+1);
 }
 function fusionStatBonus(plusValue){
   return {hp:plusValue*5,atk:plusValue*2,def:plusValue*2,spd:plusValue};
