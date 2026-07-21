@@ -445,7 +445,7 @@ button:disabled{
 
 .last-dungeon-button{grid-column:1/-1;background:var(--g)}
 
-.damage-log.critical{color:#ffd84d}.damage-log.miss{color:#aaa}.damage-popup.critical{color:#ffd84d;font-size:22px}.damage-popup.miss{color:#aaa;font-size:19px;letter-spacing:.08em}
+.damage-log.critical{color:#ffd84d}.damage-log.miss{color:#aaa}.damage-popup.critical{color:#ffd84d;font-size:17px;white-space:nowrap;min-width:max-content}.damage-popup.miss{color:#aaa;font-size:19px;letter-spacing:.08em}
 
 
 /* β1.4 アイテム・経験値素材 */

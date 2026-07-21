@@ -654,9 +654,7 @@ function retryLastDungeon(){
 }
 function showItems(message=''){
   state.screen='items';
-  const expTotal=ITEM_IDS.reduce((sum,id)=>sum+(state.items[id]||0),0);
-  const total=expTotal+state.gachaTickets+state.appearanceTickets;
-  const ticketRows=`
+    const ticketRows=`
     <div class="listitem item-list-row ticket-item-row">
       <div class="item-icon">🎫</div>
       <div class="item-list-main"><b>ガチャチケット</b><div class="muted">ガチャを1回引くために使用する。</div></div>
@@ -670,7 +668,6 @@ function showItems(message=''){
   app.innerHTML=`
     <div class="card item-inventory-card">
       <div class="title">所持アイテム</div>
-      <div class="muted">所持数合計：${total}個</div>
       ${message?`<div class="save-message">${message}</div>`:''}
       <div class="item-section-title">チケット</div>
       ${ticketRows}
@@ -1986,8 +1983,8 @@ function dmg(a,d,s){
 }
 function attackResult(a,d,s){
   const isNormal=s.id==='NORMAL';
-  if(isNormal&&Math.random()<.05)return{damage:0,miss:true,critical:false};
-  const critical=Math.random()<.05;
+  if(isNormal&&Math.random()<.02)return{damage:0,miss:true,critical:false};
+  const critical=Math.random()<.02;
   const base=dmg(a,d,s);
   return{damage:critical?Math.max(1,Math.round(base*1.5)):base,miss:false,critical};
 }
