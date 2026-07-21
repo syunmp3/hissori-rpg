@@ -158,7 +158,34 @@ function starDisplay(monster,mode='full'){
 function sortedMonsterEntries(){
   return Object.entries(monsterDB).sort((a,b)=>dexNo(a[0])-dexNo(b[0]));
 }
-const normalTables={"物質":["SLIME_BLUE","SLIME_RED","SLIME_YELLOW","SLIME_GREEN","MINIC","STONE"],"獣":["WOLF","BAT","BEAR","HORN_RABBIT","RAT"],"亜人":["GOBLIN","KOBOLD","ORC","WITCH","THIEF"],"悪魔":["DEMON_KID","MINI_DEMON","IMP"],"龍":["LIZARD_KID"],"植物":["MANDRAGORA","SEED","FLOWER_MAN","SPIDER"],"アンデッド":["ZOMBIE","SKELETON","GHOST"],"精霊":["MINI_FAIRY","FLAME","AQUA_SPIRIT","BOLT_SPIRIT","LEAF_SPIRIT","SHADOW_SPIRIT"]};
+// 通常配合グループ。今後追加するモンスターは、ここへ明示的に追加した場合だけ通常配合に参加する。
+const NORMAL_FUSION_GROUP_BY_MONSTER={
+  // 現時点の★1・★2はすべて「グループ1」に所属する。
+  // レア・特殊配合限定モンスターも親としてはグループ1を参照するが、通常候補からは除外する。
+  ...Object.fromEntries([
+    'SLIME_BLUE','SLIME_RED','SLIME_YELLOW','SLIME_GREEN','GOBLIN','KOBOLD','WOLF','BAT','WITCH',
+    'DEMON_KID','MINI_DEMON','LIZARD_KID','MINI_FAIRY','MANDRAGORA','SEED','FLOWER_MAN','ZOMBIE',
+    'SKELETON','GHOST','MINIC','BEAR','STONE','THIEF','IMP','FLAME','AQUA_SPIRIT','BOLT_SPIRIT',
+    'LEAF_SPIRIT','SHADOW_SPIRIT','KOKOPI','HORN_RABBIT','RAT','SPIDER',
+    'HIGH_GOBLIN','HIGH_WOLF','BLOOD_BAT','ORC','DEMON','LIZARD','MIMIC','FOX','WILD_BOAR',
+    'SHAMAN','CRYSTAL','IRON','GARGOYLE','FAIRY','KOKKORU','VAMPEEL'
+  ].map(id=>[id,1]))
+};
+const NORMAL_FUSION_EXCLUDED_IDS=new Set([
+  'KOKOPI',
+  'KOKKORU','VAMPEEL','DEMON','HIGH_GOBLIN','LIZARD','FAIRY'
+]);
+function normalFusionPool(parent){
+  const group=NORMAL_FUSION_GROUP_BY_MONSTER[parent.id];
+  if(group==null)return [];
+  return M.filter(x=>{
+    const [id,,race,,star]=x;
+    return star===parent.baseStar
+      && race===parent.race
+      && NORMAL_FUSION_GROUP_BY_MONSTER[id]===group
+      && !NORMAL_FUSION_EXCLUDED_IDS.has(id);
+  }).map(x=>x[0]);
+}
 const STARTING_GRASSLAND_POOL=[
   'SLIME_BLUE','SLIME_RED','SLIME_YELLOW','SLIME_GREEN',
   'MINIC','STONE','MANDRAGORA','SEED','FLOWER_MAN',
@@ -175,7 +202,7 @@ const BEAST_CAVE_LATE_POOL=[
 const special={
   ['GOBLIN|KOBOLD']:'HIGH_GOBLIN',
   ['KOBOLD|ORC']:'HIGH_ORC',
-  ['KOKOPI|KOKOPI']:'KOKKORU',
+  ['KOKOPI|MANDRAGORA']:'KOKKORU',
   ['KOKKORU|KOKKORU']:'COCKATRICE',
   ['DEMON_KID|MINI_DEMON']:'DEMON',
   ['BLOOD_BAT|VAMPEEL']:'VAMPIRE',
@@ -1320,7 +1347,14 @@ function beginFusion(){
   if(state.fusionParents.length!==2)return;
   const p=state.fusionParents.map(u=>state.owned.find(x=>x.uid===u));
   let ids=[p[0].id,p[1].id];
-  for(const race of new Set(p.map(x=>x.race)))ids.push(...sample(normalTables[race]||[],2));
+  const usedNormalGroups=new Set();
+  for(const parent of p){
+    const group=NORMAL_FUSION_GROUP_BY_MONSTER[parent.id];
+    const groupKey=`${parent.baseStar}|${group??'none'}|${parent.race}`;
+    if(usedNormalGroups.has(groupKey))continue;
+    usedNormalGroups.add(groupKey);
+    ids.push(...sample(normalFusionPool(parent),2));
+  }
   ids=[...new Set(ids)];
   const sp=special[key(p[0].id,p[1].id)];
   if(sp)ids.push(sp);
