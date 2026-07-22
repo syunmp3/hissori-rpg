@@ -1,3 +1,5 @@
+const GAME_VERSION='Ver1.7';
+const VERSION_NOTICE_KEY='hissoriRpgLastShownVersion';
 const MAX_POINT=9, DELAY=500;
 const ATTRS=['火','水','雷','自然','闇','光'];
 const skills={NORMAL:{id:'NORMAL',name:'通常攻撃',type:'attack',attribute:'無',cost:0,multiplier:.8,target:'enemySingle'}};
@@ -686,6 +688,7 @@ function showModeSelection(){
       <button class="wide" onclick="selectGameMode('development')">開発用で開始</button>
     </div>
     <div class="save-warning">モードはセーブデータごとに固定されます。変更する場合はデータ管理からセーブを削除してください。</div>
+    <div class="title-version">${GAME_VERSION}</div>
   </div>`;
   updateHeader();
 }
@@ -841,8 +844,45 @@ function showDataManagement(message=''){
     <button class="wide" onclick="importSaveData()">セーブデータを読み込む</button>
     <button class="wide btn-cancel" onclick="deleteSaveData()">セーブデータを削除</button>
     <div class="muted save-note">通常は自動保存されます。書き出したJSONファイルは、別端末への移行やバックアップに利用できます。</div>
+    <div class="game-update-panel">
+      <div class="game-version-label">現在のバージョン：${GAME_VERSION}</div>
+      <button class="wide btn-update" onclick="forceGameUpdate()">🔄 最新版に更新</button>
+      <div class="muted update-note">キャッシュを削除して最新版を読み込み直します。セーブデータは消えません。</div>
+    </div>
   </div>`;
   updateHeader();
+}
+async function forceGameUpdate(){
+  const ok=confirm('最新版を取得します。\nセーブデータは消えません。\n\n更新しますか？');
+  if(!ok)return;
+  saveGame({force:true});
+  try{
+    if('caches' in window){
+      const cacheNames=await caches.keys();
+      await Promise.all(cacheNames.map(name=>caches.delete(name)));
+    }
+    if('serviceWorker' in navigator){
+      const registrations=await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map(registration=>registration.unregister()));
+    }
+  }catch(error){
+    console.warn('キャッシュの削除に失敗しました。再読み込みを続行します。',error);
+  }
+  const url=new URL(location.href);
+  url.searchParams.set('update',Date.now().toString());
+  location.replace(url.toString());
+}
+function showVersionUpdateNotice(){
+  try{
+    const lastShown=localStorage.getItem(VERSION_NOTICE_KEY);
+    if(lastShown===GAME_VERSION)return;
+    localStorage.setItem(VERSION_NOTICE_KEY,GAME_VERSION);
+    if(loadedExistingSave||lastShown){
+      setTimeout(()=>alert(`${GAME_VERSION} に更新しました！`),120);
+    }
+  }catch(error){
+    console.warn('バージョン通知を保存できませんでした。',error);
+  }
 }
 function manualSave(){
   const success=saveGame({force:true});
@@ -2475,12 +2515,13 @@ function showRecruit(cleared=true){
   skipBtn.style.display='none';
 }
 function takeRecruit(id,level=1){const joinLevel=Math.max(1,Math.min(100,Math.floor(Number(level)||1)));state.owned.push(makeOwned(id,joinLevel));state.discovered.add(id);saveGame({force:true});alert(`${monsterDB[id].name} Lv${joinLevel}が仲間になった！`);home()}
-skipBtn.onclick=()=>{state.skip=true;skipBtn.disabled=true};homeBtn.onclick=()=>{if(!state.fusionLocked&&state.screen!=='battle')home()};window.home=home;window.retryLastDungeon=retryLastDungeon;window.showDungeons=showDungeons;window.showMonsters=showMonsters;window.showFusion=showFusion;window.showBook=showBook;window.showBookDetail=showBookDetail;window.showModeSelection=showModeSelection;window.selectGameMode=selectGameMode;window.showDataManagement=showDataManagement;window.manualSave=manualSave;window.exportSaveData=exportSaveData;window.importSaveData=importSaveData;window.deleteSaveData=deleteSaveData;window.developerAcquireMonster=developerAcquireMonster;window.developerLevelUp=developerLevelUp;window.startDungeon=startDungeon;window.pickParent=pickParent;window.startFusion=startFusion;window.beginFusion=beginFusion;window.confirmFusionChoice=confirmFusionChoice;window.cancelFusionChoice=cancelFusionChoice;window.showInheritance=showInheritance;window.toggleInheritance=toggleInheritance;window.completeFusion=completeFusion;window.finishFusionResult=finishFusionResult;window.toggleParty=toggleParty;window.showMonsterDetail=showMonsterDetail;window.selectEnemy=selectEnemy;window.selectAlly=selectAlly;window.chooseSkill=chooseSkill;window.executeTurn=executeTurn;window.takeRecruit=takeRecruit;
+skipBtn.onclick=()=>{state.skip=true;skipBtn.disabled=true};homeBtn.onclick=()=>{if(!state.fusionLocked&&state.screen!=='battle')home()};window.home=home;window.retryLastDungeon=retryLastDungeon;window.showDungeons=showDungeons;window.showMonsters=showMonsters;window.showFusion=showFusion;window.showBook=showBook;window.showBookDetail=showBookDetail;window.showModeSelection=showModeSelection;window.selectGameMode=selectGameMode;window.showDataManagement=showDataManagement;window.forceGameUpdate=forceGameUpdate;window.manualSave=manualSave;window.exportSaveData=exportSaveData;window.importSaveData=importSaveData;window.deleteSaveData=deleteSaveData;window.developerAcquireMonster=developerAcquireMonster;window.developerLevelUp=developerLevelUp;window.startDungeon=startDungeon;window.pickParent=pickParent;window.startFusion=startFusion;window.beginFusion=beginFusion;window.confirmFusionChoice=confirmFusionChoice;window.cancelFusionChoice=cancelFusionChoice;window.showInheritance=showInheritance;window.toggleInheritance=toggleInheritance;window.completeFusion=completeFusion;window.finishFusionResult=finishFusionResult;window.toggleParty=toggleParty;window.showMonsterDetail=showMonsterDetail;window.selectEnemy=selectEnemy;window.selectAlly=selectAlly;window.chooseSkill=chooseSkill;window.executeTurn=executeTurn;window.takeRecruit=takeRecruit;
 window.addEventListener('beforeunload',()=>saveGame());
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveGame()});
 if(loadedExistingSave)home();
 else if(BUILD_MODE==='normal'||BUILD_MODE==='development')selectGameMode(BUILD_MODE);
 else showModeSelection();
+showVersionUpdateNotice();
 window.returnHomeAfterDefeat=returnHomeAfterDefeat;
 
 window.confirmDungeonEntry=confirmDungeonEntry;

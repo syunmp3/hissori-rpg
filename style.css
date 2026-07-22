@@ -488,3 +488,10 @@ button:disabled{
 .battle-unit .ally-action{margin-top:6px;min-height:14px}
 .battle-unit .enemy-result{min-height:27px;display:flex;align-items:center;justify-content:center;margin-top:4px}
 @media(max-height:720px){.battle-status-icons{min-height:24px}.battle-status-icon{width:20px;height:20px;flex-basis:20px}.battle-unit .ally-action{margin-top:4px}}
+
+/* Ver1.7: version and forced update UI */
+.title-version{margin-top:14px;text-align:center;color:var(--muted,#aaa);font-size:12px;font-weight:700;letter-spacing:.06em}
+.game-update-panel{margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.12)}
+.game-version-label{text-align:center;font-weight:800;margin-bottom:10px}
+.btn-update{font-weight:900}
+.update-note{text-align:center;margin-top:8px;font-size:12px;line-height:1.5}
