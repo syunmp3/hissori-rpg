@@ -10,7 +10,7 @@ const INHERITABLE_SKILL_IDS=[
   'LIGHT_1','LIGHT_2','LIGHT_3','LIGHT_4','LIGHT_5',
   'NEUTRAL_1','NEUTRAL_2','NEUTRAL_3','NEUTRAL_4','NEUTRAL_5'
 ];
-const FUSION_GENERATED_INHERITABLE_SKILL_IDS=['STONE_GAZE'];
+const FUSION_GENERATED_INHERITABLE_SKILL_IDS=['STONE_GAZE','BLOSSOM_GIFT'];
 const INHERITABLE_SKILLS=new Set([...INHERITABLE_SKILL_IDS,...FUSION_GENERATED_INHERITABLE_SKILL_IDS]);
 Object.assign(skills,{
 FIRE_1:{id:'FIRE_1',name:'フレア',star:1,type:'attack',attribute:'火',cost:1,multiplier:1,target:'enemySingle'},
@@ -76,7 +76,14 @@ COCKA_ROAR:{id:'COCKA_ROAR',name:'コカロアー',star:5,type:'attack',attribut
 STONE_GAZE:{id:'STONE_GAZE',name:'ストーンゲイズ',star:4,type:'debuff',attribute:'無',cost:3,multiplier:0,target:'enemySingle',petrify:true},
 STORE_SP:{id:'STORE_SP',name:'たくわえる',star:1,type:'storeSp',attribute:'無',cost:0,target:'self'},
 BLOOD_CRAVING:{id:'BLOOD_CRAVING',name:'血を欲するも者',star:3,type:'passive',attribute:'闇',cost:0,target:'self',active:false,passive:{lifestealRate:.5,diesIfNoAttack:true}},
-BLOOD_DRAIN:{id:'BLOOD_DRAIN',name:'ブラッドドレイン',star:3,type:'attack',attribute:'闇',cost:2,multiplier:2.2,target:'enemySingle',lifestealRate:.75}
+BLOOD_DRAIN:{id:'BLOOD_DRAIN',name:'ブラッドドレイン',star:3,type:'attack',attribute:'闇',cost:2,multiplier:2.2,target:'enemySingle',lifestealRate:.75},
+BIND:{id:'BIND',name:'バインド',star:1,type:'attack',attribute:'無',cost:1,multiplier:1.3,target:'enemySingle'},
+VENOM_FANG:{id:'VENOM_FANG',name:'ヴェノムファング',star:2,type:'attack',attribute:'無',cost:2,multiplier:1.7,target:'enemySingle',poisonStacks:1},
+WIND_CUTTER:{id:'WIND_CUTTER',name:'ウィンドカッター',star:2,type:'attack',attribute:'自然',cost:1,multiplier:1.4,target:'enemySingle'},
+ROOT_IMPACT:{id:'ROOT_IMPACT',name:'ルートインパクト',star:3,type:'attack',attribute:'自然',cost:3,multiplier:1.4,target:'enemyAll'},
+FOREST_VEIL:{id:'FOREST_VEIL',name:'フォレストベール',star:3,type:'heal',attribute:'自然',cost:2,target:'allyAll',healRate:.1,minHeal:50},
+ANCIENT_BLOSSOM:{id:'ANCIENT_BLOSSOM',name:'エンシェントブロッサム',star:4,type:'heal',attribute:'自然',cost:3,target:'allyAll',healRate:.2,minHeal:100},
+BLOSSOM_GIFT:{id:'BLOSSOM_GIFT',name:'ブロッサムギフト',star:3,type:'heal',attribute:'自然',cost:2,target:'allySingle',healRate:.25,minHeal:100,randomBuff:true}
 });
 const M=[
 ["SLIME_BLUE","ブルースライム","物質","水",1,"SLIME_ATTACK",95,35,50,30,"防御型"],
@@ -133,13 +140,25 @@ const M=[
 ["RAT","ラット","獣","無",1,"BITE",66,42,27,84,"速度型"],
 ["SPIDER","スパイダー","植物","闇",1,"PIERCE",88,52,40,58,"攻撃型"],
 ["VAMPEEL","ヴァンピール","アンデッド","闇",2,"BLOOD_CRAVING",115,68,42,82,"速度型"],
-["VAMPIRE","ヴァンパイア","アンデッド","闇",3,"BLOOD_DRAIN",185,112,68,92,"攻撃型"]
+["VAMPIRE","ヴァンパイア","アンデッド","闇",3,"BLOOD_DRAIN",185,112,68,92,"攻撃型"],
+["TRENT","トレント","植物","自然",2,"ROOT_IMPACT",165,88,98,48,"通常"],
+["SYLPH","シルフ","精霊","自然",1,"WIND_CUTTER",90,48,42,82,"通常"],
+["NYMPH","ニンフ","精霊","光",2,"NONE",135,72,78,68,"通常"],
+["DRYAD","ドライアド","精霊","自然",3,"FOREST_VEIL",182,98,92,88,"通常"],
+["DRYS","ドリュス","精霊","自然",1,"NONE",102,52,46,74,"通常"],
+["HAMADRYAD","ハマドリュアス","精霊","自然",4,"ANCIENT_BLOSSOM",255,132,122,108,"通常"],
+["HORNET","ホーネット","植物","無",1,"NONE",94,58,40,78,"通常"],
+["NOCTUA","ノクトゥア","獣","闇",1,"NONE",96,54,42,80,"通常"],
+["SERPENT","サーペント","獣","無",1,"BIND",112,60,46,64,"通常"],
+["VIPER","ヴァイパー","獣","闇",2,"VENOM_FANG",148,92,58,86,"通常"],
+["GREAT_BEAR","グレートベア","獣","自然",2,"NONE",172,102,82,58,"通常"],
 ];
 const monsterDB=Object.fromEntries(M.map(x=>[x[0],{id:x[0],name:x[1],race:x[2],attribute:x[3],baseStar:x[4],solid:x[5],hp:x[6],atk:x[7],def:x[8],spd:x[9],growth:x[10],expGrowth:x[11]||'通常型',expMultiplier:x[12]||1}]));
-const monsterDexNo={"SLIME_BLUE":1,"SLIME_RED":2,"SLIME_YELLOW":3,"SLIME_GREEN":4,"MINIC":5,"MIMIC":6,"STONE":7,"MANDRAGORA":8,"SEED":9,"FLOWER_MAN":10,"WOLF":11,"HIGH_WOLF":12,"BEAR":13,"KOKOPI":14,"KOKKORU":15,"COCKATRICE":16,"GOBLIN":17,"HIGH_GOBLIN":18,"KOBOLD":19,"ORC":20,"HIGH_ORC":21,"THIEF":22,"DEMON_KID":23,"MINI_FAIRY":24,"FAIRY":25,"LIZARD_KID":26,"LIZARD":27,"HIGH_LIZARD":28,"CRYSTAL":29,"IRON":30,"GOLEM":31,"SPIDER":32,"BAT":33,"BLOOD_BAT":34,"HORN_RABBIT":35,"RAT":36,"FOX":37,"WILD_BOAR":38,"WITCH":39,"SHAMAN":40,"ZOMBIE":41,"SKELETON":42,"GHOST":43,"VAMPEEL":44,"VAMPIRE":45,"MINI_DEMON":46,"DEMON":47,"IMP":48,"GARGOYLE":49,"HELL_HOUND":50,"FLAME":51,"AQUA_SPIRIT":52,"BOLT_SPIRIT":53,"LEAF_SPIRIT":54,"SHADOW_SPIRIT":55};
-const RARE_ENCOUNTER_MONSTERS={1:'KOKOPI',2:'VAMPEEL'};
+const monsterDexNo={"SLIME_BLUE":1,"SLIME_RED":2,"SLIME_YELLOW":3,"SLIME_GREEN":4,"MINIC":5,"MIMIC":6,"STONE":7,"MANDRAGORA":8,"SEED":9,"FLOWER_MAN":10,"WOLF":11,"HIGH_WOLF":12,"BEAR":13,"KOKOPI":14,"KOKKORU":15,"COCKATRICE":16,"GOBLIN":17,"HIGH_GOBLIN":18,"KOBOLD":19,"ORC":20,"HIGH_ORC":21,"THIEF":22,"DEMON_KID":23,"MINI_FAIRY":24,"FAIRY":25,"LIZARD_KID":26,"LIZARD":27,"HIGH_LIZARD":28,"CRYSTAL":29,"IRON":30,"GOLEM":31,"SPIDER":32,"BAT":33,"BLOOD_BAT":34,"HORN_RABBIT":35,"RAT":36,"FOX":37,"WILD_BOAR":38,"WITCH":39,"SHAMAN":40,"ZOMBIE":41,"SKELETON":42,"GHOST":43,"VAMPEEL":44,"VAMPIRE":45,"MINI_DEMON":46,"DEMON":47,"IMP":48,"GARGOYLE":49,"HELL_HOUND":50,"FLAME":51,"AQUA_SPIRIT":52,"BOLT_SPIRIT":53,"LEAF_SPIRIT":54,"SHADOW_SPIRIT":55,
+  "TRENT":56,"HORNET":57,"NOCTUA":58,"SERPENT":59,"VIPER":60,"GREAT_BEAR":61,"SYLPH":62,"NYMPH":63,"DRYS":64,"DRYAD":65,"HAMADRYAD":66,};
+const RARE_ENCOUNTER_MONSTERS={1:'KOKOPI',2:'VAMPEEL',3:'DRYS'};
 // レア表示は出現枠とは独立して、モンスターごとに定義する。
-const RARE_MONSTER_IDS=new Set(['KOKOPI','KOKKORU','COCKATRICE','VAMPEEL','VAMPIRE']);
+const RARE_MONSTER_IDS=new Set(['KOKOPI','KOKKORU','COCKATRICE','VAMPEEL','VAMPIRE',"DRYS","DRYAD","HAMADRYAD"]);
 
 function dexNo(id){return monsterDexNo[id]??9999}
 function starDisplay(monster,mode='full'){
@@ -172,8 +191,7 @@ const NORMAL_FUSION_GROUP_BY_MONSTER={
   ].map(id=>[id,1]))
 };
 const NORMAL_FUSION_EXCLUDED_IDS=new Set([
-  'KOKOPI',
-  'KOKKORU','VAMPEEL','DEMON','HIGH_GOBLIN','LIZARD','FAIRY'
+  'KOKOPI','KOKKORU','VAMPEEL','DEMON','HIGH_GOBLIN','LIZARD','FAIRY'
 ]);
 function normalFusionPool(parent){
   const group=NORMAL_FUSION_GROUP_BY_MONSTER[parent.id];
@@ -199,18 +217,25 @@ const BEAST_CAVE_EARLY_POOL=[
 const BEAST_CAVE_LATE_POOL=[
   ...BEAST_CAVE_EARLY_POOL,'CRYSTAL','IRON','BLOOD_BAT'
 ];
+const SPIRIT_FOREST_EARLY_POOL=[
+  'HORNET','NOCTUA','SERPENT','SYLPH','LEAF_SPIRIT','BEAR','MANDRAGORA'
+];
+const SPIRIT_FOREST_LATE_POOL=[
+  ...SPIRIT_FOREST_EARLY_POOL,'GOLEM','NYMPH','FAIRY'
+];
 const special={
   ['GOBLIN|KOBOLD']:'HIGH_GOBLIN',
   ['KOBOLD|ORC']:'HIGH_ORC',
   ['KOKOPI|MANDRAGORA']:'KOKKORU',
-  ['KOKKORU|KOKKORU']:'COCKATRICE',
+  ['KOKKORU|VIPER']:'COCKATRICE',
   ['DEMON_KID|MINI_DEMON']:'DEMON',
   ['BLOOD_BAT|VAMPEEL']:'VAMPIRE',
   ['FLAME|LIZARD_KID']:'LIZARD',
   ['MINI_FAIRY|MINI_FAIRY']:'FAIRY',
-  ['IRON|STONE']:'GOLEM'
+  ['IRON|STONE']:'GOLEM',
+  ['DRYS|NYMPH']:'DRYAD'
 };
-const FUSION_GENERATED_SKILLS_BY_MONSTER={COCKATRICE:['STONE_GAZE']};
+const FUSION_GENERATED_SKILLS_BY_MONSTER={COCKATRICE:['STONE_GAZE'],DRYAD:['BLOSSOM_GIFT']};
 const STAT_GROWTH_BASE={hp:10,atk:5,def:3,spd:2};
 const STAT_GROWTH_TYPES={
   攻撃型:{hp:.9,atk:1.2,def:.7,spd:1},
@@ -231,12 +256,12 @@ const GACHA_RATES={EXP_DROP:.50,EXP_CRYSTAL:.10,EXP_ORB:.05,APPEARANCE_TICKET:.0
 const APPEARANCE_CHANGE_MONSTER_IDS=new Set(['VAMPIRE','COCKATRICE']);
 // 配布時に normal / development へ固定する。selector は共通開発元用。
 const BUILD_MODE='normal';
-function defaultDungeonProgress(){return{1:{normal:0,hard:0,veryHard:0},2:{normal:0,hard:0,veryHard:0}}}
+function defaultDungeonProgress(){return{1:{normal:0,hard:0,veryHard:0},2:{normal:0,hard:0,veryHard:0},3:{normal:0,hard:0,veryHard:0}}}
 function loadDungeonProgress(){
   const base=defaultDungeonProgress();
   try{
     const saved=JSON.parse(localStorage.getItem(DUNGEON_PROGRESS_KEY)||'{}');
-    for(const id of [1,2])for(const difficulty of Object.keys(DIFFICULTIES)){
+    for(const id of [1,2,3])for(const difficulty of Object.keys(DIFFICULTIES)){
       base[id][difficulty]=Math.max(0,Number(saved?.[id]?.[difficulty])||0);
     }
   }catch{}
@@ -254,7 +279,12 @@ function loadMonsterDefeatCounts(){
 function saveMonsterDefeatCounts(){
   try{localStorage.setItem(MONSTER_DEFEAT_COUNTS_KEY,JSON.stringify(state.monsterDefeatCounts))}catch{}
 }
+function dungeonUnlocked(dungeonId){
+  if(dungeonId===3)return (state.dungeonProgress[1]?.normal||0)>=10;
+  return true;
+}
 function difficultyUnlocked(dungeonId,difficulty){
+  if(!dungeonUnlocked(dungeonId))return false;
   if(difficulty==='normal')return true;
   if(difficulty==='hard')return (state.dungeonProgress[dungeonId]?.normal||0)>=20;
   return (state.dungeonProgress[dungeonId]?.hard||0)>=30;
@@ -322,7 +352,7 @@ function normalizeItems(value){
 }
 function itemStarDisplay(item){return '★'.repeat(item.star)}
 const state={screen:'modeSelect',mode:null,gachaTickets:0,appearanceTickets:0,items:emptyItemInventory(),unlockedAppearances:new Set(),point:0,enemyPoint:0,nextSpBonus:0,battleType:'normal',turn:1,isProcessing:false,skip:false,selectedAlly:0,selectedEnemy:0,pending:null,queue:[null,null,null],floor:0,dungeon:null,difficulty:'normal',lastDungeonId:null,lastDungeonDifficulty:null,dungeonProgress:loadDungeonProgress(),monsterDefeatCounts:loadMonsterDefeatCounts(),clearRecorded:false,bossEnemyIndices:new Set(),soloBossBattle:false,recruits:new Map(),floorResult:null,restRecoveryUsed:false,battleLogs:[],monsterSort:'acquired',monsterSortDir:'asc',partyEditSlot:null,bulkPartySelection:[],detailFrom:'list',fusionParents:[],fusionChoices:[],fusionSelected:null,inheritChoices:[],inheritSelected:[],fusionResult:null,fusionLocked:false,owned:[],discovered:new Set(),party:[],dungeonStartSnapshot:null,lastSavedAt:null,saveLoadError:null,saveBlocked:false};
-function makeOwned(id,level=1,_star=null,skills2=null){const b=monsterDB[id],lv=Math.max(1,level),stats=growthAtLevel(b,lv);return{uid:crypto.randomUUID?.()||Math.random().toString(36),...b,star:b.baseStar,plusValue:0,appearance:'default',level:lv,exp:0,nextExp:requiredExp(lv,b.expGrowth),maxHp:stats.maxHp,hp:stats.maxHp,atk:stats.atk,def:stats.def,spd:stats.spd,skills:skills2??defaultSkills(b),buffAtk:1,buffDef:1,buffAtkTurns:0,buffDefTurns:0}}
+function makeOwned(id,level=1,_star=null,skills2=null){const b=monsterDB[id],lv=Math.max(1,level),stats=growthAtLevel(b,lv);return{uid:crypto.randomUUID?.()||Math.random().toString(36),...b,star:b.baseStar,plusValue:0,appearance:'default',level:lv,exp:0,nextExp:requiredExp(lv,b.expGrowth),maxHp:stats.maxHp,hp:stats.maxHp,atk:stats.atk,def:stats.def,spd:stats.spd,skills:skills2??defaultSkills(b),poisonTimers:[],atkBuffTimers:[],defBuffTimers:[],atkDebuffTimers:[],defDebuffTimers:[],spdBuffTimers:[],spdDebuffTimers:[]}}
 function defaultSkills(b){const prefix={火:'FIRE',水:'WATER',雷:'THUNDER',自然:'NATURE',闇:'DARK',光:'LIGHT',無:'NEUTRAL'}[b.attribute];const own=`${prefix}_1`;return['NORMAL',own,b.solid].filter((id,i,a)=>skills[id]&&a.indexOf(id)===i)}
 function initialSlimes(){
   return['SLIME_BLUE','SLIME_RED','SLIME_YELLOW','SLIME_GREEN'].map(id=>makeOwned(id,1));
@@ -368,7 +398,7 @@ function structuredCloneSafe(value){
 }
 function normalizeDungeonProgress(value){
   const normalized=defaultDungeonProgress();
-  for(const id of [1,2])for(const difficulty of Object.keys(DIFFICULTIES)){
+  for(const id of [1,2,3])for(const difficulty of Object.keys(DIFFICULTIES)){
     normalized[id][difficulty]=Math.max(0,Math.floor(Number(value?.[id]?.[difficulty])||0));
   }
   return normalized;
@@ -559,7 +589,18 @@ const monsterArtworkFiles={
   RAT:'rat.png',
   SPIDER:'spider.png',
   VAMPEEL:'vampeel.png',
-  VAMPIRE:'vampire.png'
+  VAMPIRE:'vampire.png',
+  TRENT:'trent.png',
+  SYLPH:'sylph.png',
+  NYMPH:'nymph.png',
+  DRYAD:'dryad.png',
+  DRYS:'drys.png',
+  HAMADRYAD:'hamadryad.png',
+  HORNET:'hornet.png',
+  NOCTUA:'noctua.png',
+  SERPENT:'serpent.png',
+  VIPER:'viper.png',
+  GREAT_BEAR:'great_bear.png',
 };
 const monsterAlternateArtworkFiles={
   VAMPIRE:'vampire_female.png',
@@ -880,18 +921,32 @@ function dungeonInfo(id){
         },
         description:'...'
       };
+
+    case 3:
+      return {
+        id:3,
+        name:'精霊の森',
+        max:10,
+        restFloor:5,
+        levelFunc: floor=>{
+          if(floor<=4) return 10 + Math.ceil(floor/2);
+          return 10 + Math.ceil((floor-1)/2);
+        },
+        description:'...'
+      };
   }
 }
 function showDungeons(){
   state.screen='dungeons';
   state.fusionLocked=false;
   app.innerHTML=`<div class="card"><div class="title">ダンジョン</div>
-    ${[1,2].map(id=>{const d=dungeonInfo(id),p=state.dungeonProgress[id];return`<div class="listitem choice" onclick="confirmDungeonEntry(${id})"><b>${d.name}</b>　全${d.max}層<div class="difficulty-counts">ノーマル ${p.normal}回　／　ハード ${p.hard}回　／　ベリーハード ${p.veryHard}回</div></div>`}).join('')}
+    ${[1,2,3].map(id=>{const d=dungeonInfo(id),p=state.dungeonProgress[id],unlocked=dungeonUnlocked(id);return`<div class="listitem choice ${unlocked?'':'locked'}" ${unlocked?`onclick="confirmDungeonEntry(${id})"`:''}><b>${d.name}</b>　全${d.max}層<div class="difficulty-counts">${unlocked?`ノーマル ${p.normal}回　／　ハード ${p.hard}回　／　ベリーハード ${p.veryHard}回`:`始まりの草原・ノーマルを10回クリアで解放（${state.dungeonProgress[1]?.normal||0}/10）`}</div></div>`}).join('')}
   </div>`;
   updateHeader();
 }
 function confirmDungeonEntry(id){
   const d=dungeonInfo(id);
+  if(!d||!dungeonUnlocked(id)){showDungeons();return;}
   state.screen='dungeonConfirm';
   const p=state.dungeonProgress[id];
   app.innerHTML=`<div class="card result">
@@ -905,7 +960,9 @@ function confirmDungeonEntry(id){
           ?`ノーマルを20回クリアで解放（${p.normal}/20）`
           :key==='veryHard'
             ?`ハードを30回クリアで解放（${p.hard}/30）`
-            :'最初から選択可能';
+            :id===3
+              ?'始まりの草原・ノーマル10回クリアで解放済み'
+              :'最初から選択可能';
         return`<button class="difficulty-btn ${unlocked?'':'locked'}" onclick="startDungeon(${id},'${key}')" ${unlocked?'':'disabled'}><b>${cfg.name}</b><small>${condition}</small></button>`;
       }).join('')}
       <button class="btn-cancel" onclick="showDungeons()">戻る</button>
@@ -1083,6 +1140,10 @@ function skillTypeLabel(skill){
     heal:'回復',
     buffAtk:'攻撃バフ',
     buffDef:'防御バフ',
+    debuffAtk:'攻撃デバフ',
+    debuffDef:'防御デバフ',
+    buffSpd:'素早さバフ',
+    debuffSpd:'素早さデバフ',
     storeSp:'補助',
     passive:'パッシブ'
   };
@@ -1125,6 +1186,7 @@ function skillEffectDescription(skill){
   if(skill.type==='storeSp')texts.push('次のターンに得られるスキルポイントが1増える');
   if(skill.fearChance)texts.push(`使用者よりレベルの低い相手に${Math.round(skill.fearChance*100)}%で恐怖を付与（1ターン行動不能／同レベル以上・中ボス・ボス無効）`);
   if(skill.petrify)texts.push('石化を付与（基礎85%／格上-85%／中ボス・ボス-80%／格下+30%）');
+  if(skill.poisonStacks)texts.push(`毒を${skill.poisonStacks}層付与（5ターン／最大99層）`);
   if(skill.hits)texts.push(`${skill.hits}回攻撃`);
   if(skill.randomTarget)texts.push('対象ランダム');
   if(skill.healRate)texts.push(`最大HPの${Math.round(skill.healRate*100)}%回復`);
@@ -1722,7 +1784,7 @@ async function startDungeon(n,difficulty='normal'){
   state.battleLogs=[];
   state.point=0;
   state.enemyPoint=0;
-  party().forEach(x=>{x.hp=x.maxHp;x.buffAtk=1;x.buffDef=1});
+  party().forEach(x=>{x.hp=x.maxHp;clearTimedStatuses(x)});
   await showDungeonIntro();
   enterCurrentFloor();
 }
@@ -1776,8 +1838,10 @@ function recoverAtRest(){
     if(monster.hp<=0)monster.hp=Math.max(1,Math.round(monster.maxHp*.25));
     else monster.hp=Math.min(monster.maxHp,monster.hp+Math.round(monster.maxHp*.5));
     monster.fearTurns=0;
+    monster.fearConsumed=false;
     monster.petrified=false;
     monster.petrifyTurns=0;
+    clearTimedStatuses(monster);
   }
   state.restRecoveryUsed=true;
   showRestFloor();
@@ -1817,6 +1881,19 @@ function enemyIdsForFloor(){
       state.bossEnemyIndices.add(0);
       return ['DEMON'];
     }
+    if(d.id===3){
+      const roll=Math.random();
+      if(roll<.2){
+        state.bossEnemyIndices.add(0);
+        return ['TRENT'];
+      }
+      if(roll<.6){
+        state.bossEnemyIndices.add(1);
+        return ['SERPENT','VIPER','SERPENT'];
+      }
+      state.bossEnemyIndices.add(0);
+      return ['GREAT_BEAR'];
+    }
     state.bossEnemyIndices.add(0);
     return [sample(dungeonEnemyPool(3),1)[0]];
   }
@@ -1834,6 +1911,10 @@ function enemyIdsForFloor(){
       return [RARE_ENCOUNTER_MONSTERS[2]];
     }
     const pool=f<=4?BEAST_CAVE_EARLY_POOL:BEAST_CAVE_LATE_POOL;
+    return Array.from({length:count},()=>sample(pool,1)[0]);
+  }
+  if(d.id===3){
+    const pool=f<=4?SPIRIT_FOREST_EARLY_POOL:SPIRIT_FOREST_LATE_POOL;
     return Array.from({length:count},()=>sample(pool,1)[0]);
   }
   const stars=f<=5?[1]:[1,2],ids=[];
@@ -1862,7 +1943,7 @@ function enemyUnit(id,index){
   const soloBoss=isBoss&&state.soloBossBattle;
   const hp=Math.round(scaled(levelStats.maxHp)*(soloBoss?2.5:isBoss?2:1));
   const statRate=soloBoss?1.2:1;
-  return{...b,hp,maxHp:hp,atk:Math.round(scaled(levelStats.atk)*statRate),def:Math.round(scaled(levelStats.def)*statRate),spd:Math.round(scaled(levelStats.spd)*statRate),level,isBoss,isMidBoss:false,actionsPerTurn:soloBoss?2:1,fearTurns:0,petrified:false,petrifyTurns:0,exp:enemyExperience(b,level,isBoss,soloBoss),buffDef:1};
+  return{...b,hp,maxHp:hp,atk:Math.round(scaled(levelStats.atk)*statRate),def:Math.round(scaled(levelStats.def)*statRate),spd:Math.round(scaled(levelStats.spd)*statRate),level,isBoss,isMidBoss:false,actionsPerTurn:soloBoss?2:1,fearTurns:0,fearConsumed:false,petrified:false,petrifyTurns:0,poisonTimers:[],atkBuffTimers:[],defBuffTimers:[],atkDebuffTimers:[],defDebuffTimers:[],spdBuffTimers:[],spdDebuffTimers:[],exp:enemyExperience(b,level,isBoss,soloBoss)};
 }
 function startFloor(){
   state.screen='battle';
@@ -1878,7 +1959,7 @@ function startFloor(){
   const enemyIds=enemyIdsForFloor();
   state.soloBossBattle=enemyIds.length===1&&state.bossEnemyIndices.size===1;
   state.enemies=enemyIds.map((id,index)=>enemyUnit(id,index));
-  party().forEach(x=>{x.buffAtk=1;x.buffDef=1;x.fearTurns=0;x.petrified=false;x.petrifyTurns=0});
+  party().forEach(x=>{x.fearTurns=0;x.fearConsumed=false;x.petrified=false;x.petrifyTurns=0;clearTimedStatuses(x)});
   renderBattle();
   updateHeader();
 }
@@ -2005,6 +2086,56 @@ function passiveDamageTakenMultiplier(unit){
   }
   return m;
 }
+const TIMED_STATUS_CONFIG={
+  atkBuff:{timers:'atkBuffTimers',max:5,turns:3,label:'攻撃UP'},
+  defBuff:{timers:'defBuffTimers',max:5,turns:3,label:'防御UP'},
+  atkDebuff:{timers:'atkDebuffTimers',max:5,turns:3,label:'攻撃DOWN'},
+  defDebuff:{timers:'defDebuffTimers',max:5,turns:3,label:'防御DOWN'},
+  spdBuff:{timers:'spdBuffTimers',max:5,turns:3,label:'素早さUP'},
+  spdDebuff:{timers:'spdDebuffTimers',max:5,turns:3,label:'素早さDOWN'}
+};
+function timedStatusCount(unit,kind){
+  const config=TIMED_STATUS_CONFIG[kind];
+  if(!config)return 0;
+  return Math.min(config.max,Array.isArray(unit[config.timers])?unit[config.timers].length:0);
+}
+function clearTimedStatuses(unit){
+  unit.poisonTimers=[];
+  for(const config of Object.values(TIMED_STATUS_CONFIG))unit[config.timers]=[];
+}
+function applyTimedStatus(target,kind,count=1){
+  const config=TIMED_STATUS_CONFIG[kind];
+  if(!config||target.hp<=0)return 0;
+  if(!Array.isArray(target[config.timers]))target[config.timers]=[];
+  const add=Math.min(Math.max(0,Math.floor(count||1)),config.max-target[config.timers].length);
+  for(let i=0;i<add;i++)target[config.timers].push(config.turns);
+  if(add>0)log(`<span class="status-log">${target.name} に${config.label}が${add}層付与された！（${config.label}×${timedStatusCount(target,kind)}）</span>`);
+  else log(`<span class="status-log">${target.name} の${config.label}は最大まで重なっている！</span>`);
+  return add;
+}
+function attackStatMultiplier(unit){return Math.max(.05,1+.25*timedStatusCount(unit,'atkBuff')-.05*timedStatusCount(unit,'atkDebuff'))}
+function damageTakenStatusMultiplier(unit){return Math.max(.05,1-.10*timedStatusCount(unit,'defBuff')+.05*timedStatusCount(unit,'defDebuff'))}
+function speedStatMultiplier(unit){return Math.max(.05,1+.05*timedStatusCount(unit,'spdBuff')-.05*timedStatusCount(unit,'spdDebuff'))}
+function effectiveSpeed(unit){return unit.spd*speedStatMultiplier(unit)}
+async function processTimedStatusTurn(){
+  for(const unit of [...party(),...state.enemies]){
+    if(unit.hp<=0)continue;
+    for(const [kind,config] of Object.entries(TIMED_STATUS_CONFIG)){
+      const before=timedStatusCount(unit,kind);
+      if(before<=0)continue;
+      unit[config.timers]=unit[config.timers].map(turns=>turns-1).filter(turns=>turns>0);
+      const after=timedStatusCount(unit,kind);
+      if(after<before){
+        const lost=before-after;
+        if(after>0)log(`<span class="status-log">${unit.name} の${config.label}が${lost}層消えた。（${config.label}×${after}）</span>`);
+        else log(`<span class="status-log">${unit.name} の${config.label}が切れた。</span>`);
+      }
+    }
+  }
+}
+function skillStatusKind(skill){
+  return ({buffAtk:'atkBuff',buffDef:'defBuff',debuffAtk:'atkDebuff',debuffDef:'defDebuff',buffSpd:'spdBuff',debuffSpd:'spdDebuff'})[skill.type]||null;
+}
 function dmg(a,d,s){
   const attackPassive=passiveAttackMultiplier(a,s.attribute);
   const defensePassive=passiveDamageTakenMultiplier(d);
@@ -2013,7 +2144,8 @@ function dmg(a,d,s){
     :(s.multiplier??1);
   if(multiplier===0)return 0;
   const randomRate=.9+Math.random()*.2;
-  return Math.max(1,Math.round(a.atk*(a.buffAtk||1)*multiplier*attackPassive*adv(a.attribute,s.attribute,d.attribute)*100/(100+d.def*(d.buffDef||1))*defensePassive*randomRate))
+  const base=a.atk*attackStatMultiplier(a)*multiplier*attackPassive*adv(a.attribute,s.attribute,d.attribute)*100/(100+d.def);
+  return Math.max(1,Math.round(base*defensePassive*damageTakenStatusMultiplier(d)*randomRate))
 }
 function attackResult(a,d,s){
   const isNormal=s.id==='NORMAL';
@@ -2061,6 +2193,14 @@ function applySelfCost(unit,skill){
   unit.hp=Math.max(0,unit.hp-cost);
   log(`${unit.name}は反動で${cost}ダメージ`);
 }
+function processFearRecovery(){
+  for(const unit of [...party(),...state.enemies]){
+    if(!unit.fearConsumed)continue;
+    unit.fearTurns=0;
+    unit.fearConsumed=false;
+    refreshBattleStatusIcons(unit);
+  }
+}
 async function allyAct(a,q){
   const s=skills[q.skillId]||skills.NORMAL;
   if(s.type==='attack'){
@@ -2102,16 +2242,13 @@ async function allyAct(a,q){
     }
     renderBattle();
     await wait(DELAY);
-  }else if(s.type==='buffAtk'){
-    party().forEach(x=>x.buffAtk=s.multiplier);
-    log('味方全体の攻撃力アップ');
-    await wait(DELAY);
-  }else if(s.type==='buffDef'){
-    const target=party()[q.target]||party().find(x=>x.hp>0);
-    if(target){
-      target.buffDef=s.multiplier;
-      log(`${target.name}の防御力アップ`);
-    }
+  }else if(skillStatusKind(s)){
+    const kind=skillStatusKind(s),isBuff=kind.endsWith('Buff');
+    const candidates=isBuff?party().filter(x=>x.hp>0):state.enemies.filter(x=>x.hp>0);
+    const selected=s.target==='self'?a:(isBuff?party()[q.target]:state.enemies[q.target]);
+    const targets=s.target==='allyAll'||s.target==='enemyAll'?candidates:[selected?.hp>0?selected:candidates[0]];
+    log(`${a.name}の${s.name}！`);
+    for(const target of targets.filter(Boolean))applyTimedStatus(target,kind,s.statusStacks||1);
     await wait(DELAY);
   }
 }
@@ -2176,12 +2313,12 @@ async function enemyAct(e){
   renderBattle();
   await wait(DELAY);
 }
-async function executeTurn(){if(state.isProcessing)return;if(state.pending){state.queue[state.pending.actor]=null;state.pending=null}state.isProcessing=true;state.skip=false;updateHeader();const allies=party();resetAttackTracking();allies.forEach((a,i)=>{if(a.hp>0&&!state.queue[i])state.queue[i]={skillId:'NORMAL',name:'通常攻撃',cost:0,target:state.selectedEnemy}});state.point-=reserved();const acts=[];allies.forEach((a,i)=>{if(a.hp>0)acts.push({side:'a',i,spd:a.spd+Math.random()*.001})});state.enemies.forEach((e,i)=>{if(e.hp>0)for(let action=0;action<(e.actionsPerTurn||1);action++)acts.push({side:'e',i,spd:e.spd+Math.random()*.001})});acts.sort((x,y)=>y.spd-x.spd);log(`<b>ターン${state.turn}</b>`);for(const x of acts){if(x.side==='a'){if(allies[x.i].hp>0)await allyAct(allies[x.i],state.queue[x.i])}else if(state.enemies[x.i].hp>0)await enemyAct(state.enemies[x.i]);if(state.enemies.every(e=>e.hp<=0)||allies.every(a=>a.hp<=0))break}applyNoAttackDeaths();skipBtn.disabled=true;if(state.enemies.every(e=>e.hp<=0)){await winFloor();return}if(allies.every(a=>a.hp<=0)){
+async function executeTurn(){if(state.isProcessing)return;if(state.pending){state.queue[state.pending.actor]=null;state.pending=null}state.isProcessing=true;state.skip=false;updateHeader();const allies=party();resetAttackTracking();allies.forEach((a,i)=>{if(a.hp>0&&!state.queue[i])state.queue[i]={skillId:'NORMAL',name:'通常攻撃',cost:0,target:state.selectedEnemy}});state.point-=reserved();const acts=[];allies.forEach((a,i)=>{if(a.hp>0)acts.push({side:'a',i,spd:effectiveSpeed(a)+Math.random()*.001})});state.enemies.forEach((e,i)=>{if(e.hp>0)for(let action=0;action<(e.actionsPerTurn||1);action++)acts.push({side:'e',i,spd:effectiveSpeed(e)+Math.random()*.001})});acts.sort((x,y)=>y.spd-x.spd);log(`<b>ターン${state.turn}</b>`);for(const x of acts){if(x.side==='a'){if(allies[x.i].hp>0)await allyAct(allies[x.i],state.queue[x.i])}else if(state.enemies[x.i].hp>0)await enemyAct(state.enemies[x.i]);if(state.enemies.every(e=>e.hp<=0)||allies.every(a=>a.hp<=0))break}applyNoAttackDeaths();await processPoisonTurn();await processTimedStatusTurn();skipBtn.disabled=true;if(state.enemies.every(e=>e.hp<=0)){await winFloor();return}if(allies.every(a=>a.hp<=0)){
   log('<b>敗北……</b>');
   state.isProcessing=false;
   showDefeat();
   return
-}processPetrifyRecovery();state.turn++;const skillUsers=state.queue.filter(q=>q?.used&&(q.cost||0)>0).length;
+}processPetrifyRecovery();processFearRecovery();state.turn++;const skillUsers=state.queue.filter(q=>q?.used&&(q.cost||0)>0).length;
 const gainedPoints=Math.max(0,3-skillUsers)+state.nextSpBonus;
 state.nextSpBonus=0;
 state.point=Math.min(9,state.point+gainedPoints);
@@ -2367,12 +2504,43 @@ window.toggleBulkParty=toggleBulkParty;
 window.applyBulkParty=applyBulkParty;
 window.renderBulkPartySelection=renderBulkPartySelection;
 /* β0.4-15 戦闘画面演出 */
-function battleUnit(unit,side,index,selected,action=''){const statuses=[unit.fearTurns>0?'恐怖':'',unit.petrified?'石化':''].filter(Boolean).join(' / ');return `<div class="unit battle-unit ${selected} ${unit.hp<=0?'dead':''}" data-side="${side}" data-index="${index}" onclick="${side==='enemy'?`selectEnemy(${index})`:`selectAlly(${index})`}"><div class="battle-visual">${monsterArtwork(unit,'battle')}</div><div class="name ${side==='enemy'?`ename ${eclass(unit)}`:''}">${unit.name}</div>${side==='ally'?`<div class="hp"><span style="width:${hpRate(unit)*100}%"></span></div><div class="sub hp-text">${unit.hp}/${unit.maxHp}</div>`:''}<div class="action">${side==='ally'?`${action||'待機中'}${statuses?' / '+statuses:''}`:(unit.hp<=0?'撃破':statuses)}</div></div>`}
+const battleStatusIconFiles={
+  atkBuff:'atk_up.png',
+  defBuff:'def_up.png',
+  spdBuff:'spd_up.png',
+  atkDebuff:'atk_down.png',
+  defDebuff:'def_down.png',
+  spdDebuff:'spd_down.png',
+  poison:'poison.png',
+  petrify:'petrify.png',
+  fear:'fear.png'
+};
+function battleStatusIcons(unit){
+  const poisonStacks=Math.min(99,Array.isArray(unit.poisonTimers)?unit.poisonTimers.length:0);
+  const statuses=[
+    {key:'atkBuff',count:timedStatusCount(unit,'atkBuff'),label:'攻撃UP'},
+    {key:'defBuff',count:timedStatusCount(unit,'defBuff'),label:'防御UP'},
+    {key:'spdBuff',count:timedStatusCount(unit,'spdBuff'),label:'素早さUP'},
+    {key:'atkDebuff',count:timedStatusCount(unit,'atkDebuff'),label:'攻撃DOWN'},
+    {key:'defDebuff',count:timedStatusCount(unit,'defDebuff'),label:'防御DOWN'},
+    {key:'spdDebuff',count:timedStatusCount(unit,'spdDebuff'),label:'素早さDOWN'},
+    {key:'poison',count:poisonStacks,label:'毒',showCount:true},
+    {key:'petrify',count:unit.petrified?1:0,label:'石化',showCount:false},
+    {key:'fear',count:unit.fearTurns>0?1:0,label:'恐怖',showCount:false}
+  ].filter(status=>status.count>0);
+  if(!statuses.length)return '<div class="battle-status-icons empty"></div>';
+  return `<div class="battle-status-icons">${statuses.map(status=>`<span class="battle-status-icon" title="${status.label}"><img src="assets/icons/${battleStatusIconFiles[status.key]}" alt="${status.label}">${status.showCount===false?'':`<b>${status.count}</b>`}</span>`).join('')}</div>`;
+}
+function battleUnit(unit,side,index,selected,action=''){
+  const statusIcons=battleStatusIcons(unit);
+  return `<div class="unit battle-unit ${selected} ${unit.hp<=0?'dead':''}" data-side="${side}" data-index="${index}" onclick="${side==='enemy'?`selectEnemy(${index})`:`selectAlly(${index})`}"><div class="battle-visual">${monsterArtwork(unit,'battle')}</div><div class="name ${side==='enemy'?`ename ${eclass(unit)}`:''}">${unit.name}</div>${side==='ally'?`<div class="hp"><span style="width:${hpRate(unit)*100}%"></span></div><div class="sub hp-text">${unit.hp}/${unit.maxHp}</div>${statusIcons}<div class="action ally-action">${action||'待機中'}</div>`:`${unit.hp<=0?'<div class="action enemy-result">撃破</div>':statusIcons}`}</div>`;
+}
 function renderBattle(){const allies=party(),selected=allies[state.selectedAlly]||allies.find(a=>a.hp>0)||allies[0];app.innerHTML=`<div class="status"><span>${difficultyConfig().name}　FLOOR ${state.floor}/${state.dungeon.max}　TURN ${state.turn}</span><span>${state.point}/9SP</span></div><div class="gauge">${gauge()}</div><div class="card battle-side"><div class="unitrow ${state.enemies.length===1?'single-enemy':''}">${state.enemies.map((e,i)=>battleUnit(e,'enemy',i,state.pending?.side==='enemy'&&e.hp>0?'target-option-enemy':'')).join('')}</div></div><div id="log" class="log">${state.battleLogs.join('')}</div><div class="card battle-side"><div class="unitrow">${allies.map((a,i)=>battleUnit(a,'ally',i,`${i===state.selectedAlly?'sel ':''}${state.pending?.side==='ally'&&a.hp>0?'target-option-ally':''}`,state.queue[i]?.name)).join('')}</div></div><div class="card"><div class="muted">${state.pending?(state.pending.side==='enemy'?'対象の敵を選択':'対象の味方を選択'):'行動を選択'}</div><div class="grid commands">${selected.skills.filter(id=>skills[id]&&skills[id].active!==false&&skills[id].type!=='passive').map(id=>{const s=skills[id];return`<button onclick="chooseSkill('${id}')" ${state.isProcessing?'disabled':''}>${s.name}<small>${s.cost}SP / ${targetLabel(s.target)}</small></button>`}).join('')}</div><button class="wide btn-next" onclick="executeTurn()" ${state.isProcessing?'disabled':''}>選択完了</button></div>`;updateHeader();const l=document.getElementById('log');if(l)l.scrollTop=l.scrollHeight}
 function effectiveness(sa,ta){const r=matchupMultiplier(sa,ta);return r>1?'weak':r<1?'resist':'normal'}
 function battleEl(side,u){const i=side==='enemy'?state.enemies.indexOf(u):party().indexOf(u);return document.querySelector(`.battle-unit[data-side="${side}"][data-index="${i}"]`)}
 async function attackMotion(side,u){const e=battleEl(side,u);if(!e||state.skip)return;e.classList.add(side==='ally'?'attack-up':'attack-down');await wait(240);e.classList.remove('attack-up','attack-down')}
 function updateBattleHp(side,u){const e=battleEl(side,u);if(!e)return;const bar=e.querySelector('.hp span'),text=e.querySelector('.hp-text');if(bar)requestAnimationFrame(()=>bar.style.width=`${hpRate(u)*100}%`);if(text)text.textContent=`${u.hp}/${u.maxHp}`;if(u.hp<=0)e.classList.add('dead')}
+function refreshBattleStatusIcons(unit){const side=state.enemies.includes(unit)?'enemy':'ally',e=battleEl(side,unit);if(!e)return;const current=e.querySelector('.battle-status-icons'),html=battleStatusIcons(unit),box=document.createElement('div');box.innerHTML=html;const next=box.firstElementChild;if(current&&next)current.replaceWith(next)}
 async function damageEffect(side,u,result,s){const e=battleEl(side,u),type=effectiveness(s.attribute,u.attribute),n=result.damage;if(e){const p=document.createElement('div'),icon=!result.miss&&s.attribute!=='無'?attributeIconFiles[s.attribute]:null;if(!result.miss){e.classList.remove('hit-shake');void e.offsetWidth;e.classList.add('hit-shake')}p.className=`damage-popup ${result.miss?'miss':result.critical?'critical':type}`;p.innerHTML=result.miss?'<span>MISS</span>':`${icon?`<img src="assets/icons/${icon}" alt="">`:''}<span>${result.critical?'会心！ ':''}${n}</span>`;e.appendChild(p);setTimeout(()=>p.remove(),850)}updateBattleHp(side,u);if(result.miss)log(`<span class="damage-log miss">${u.name} への攻撃は外れた！</span>`);else log(`<span class="damage-log ${result.critical?'critical':type}">${result.critical?'会心の一撃！ ':''}${u.name} に ${n}ダメージ！${type==='weak'?' 弱点！':type==='resist'?' 耐性':''}</span>`);await wait(360)}
 function canReceiveFear(source,target){
   const sourceLevel=source.level||1,targetLevel=target.level||1;
@@ -2382,8 +2550,44 @@ function tryApplyFear(source,target,skill){
   if(!skill.fearChance||target.hp<=0||!canReceiveFear(source,target))return false;
   if(Math.random()>=skill.fearChance)return false;
   target.fearTurns=Math.max(target.fearTurns||0,1);
+  target.fearConsumed=false;
+  refreshBattleStatusIcons(target);
   log(`<span class="status-log fear">${target.name} は恐怖で動けなくなった！</span>`);
   return true;
+}
+function poisonStackCount(unit){
+  return Math.min(99,Array.isArray(unit.poisonTimers)?unit.poisonTimers.length:0);
+}
+function tryApplyPoison(source,target,skill){
+  const addCount=Math.max(0,Math.floor(skill.poisonStacks||0));
+  if(addCount<=0||target.hp<=0||target.poisonImmune)return false;
+  if(!Array.isArray(target.poisonTimers))target.poisonTimers=[];
+  const actual=Math.min(addCount,99-target.poisonTimers.length);
+  for(let i=0;i<actual;i++)target.poisonTimers.push(5);
+  if(actual<=0){
+    log(`<span class="status-log poison">${target.name} の毒は最大まで重なっている！</span>`);
+    return false;
+  }
+  log(`<span class="status-log poison">${target.name} に毒が${actual}層付与された！（毒×${poisonStackCount(target)}）</span>`);
+  return true;
+}
+async function processPoisonTurn(){
+  for(const [side,units] of [['ally',party()],['enemy',state.enemies]]){
+    for(const unit of units){
+      const stacks=poisonStackCount(unit);
+      if(unit.hp<=0||stacks<=0)continue;
+      const rate=(unit.isBoss||unit.isMidBoss)?.005:.01;
+      const damage=Math.max(1,Math.floor(unit.maxHp*rate*stacks));
+      unit.hp=Math.max(0,unit.hp-damage);
+      log(`<span class="status-log poison">${unit.name} は毒で ${damage}ダメージ！（毒×${stacks}）</span>`);
+      updateBattleHp(side,unit);
+      await wait(250);
+      unit.poisonTimers=unit.poisonTimers.map(turns=>turns-1).filter(turns=>turns>0);
+      const remaining=poisonStackCount(unit);
+      if(remaining<stacks&&remaining>0)log(`<span class="status-log poison">${unit.name} の毒が${stacks-remaining}層弱まった。（毒×${remaining}）</span>`);
+      else if(remaining===0)log(`<span class="status-log poison">${unit.name} の毒が消えた。</span>`);
+    }
+  }
 }
 function petrifyChance(source,target){
   const sourceLevel=source.level||1,targetLevel=target.level||1;
@@ -2421,7 +2625,7 @@ async function consumeFearTurn(unit){
     return true;
   }
   if((unit.fearTurns||0)<=0)return false;
-  unit.fearTurns--;
+  unit.fearConsumed=true;
   log(`<span class="status-log fear">${unit.name} は恐怖で行動できない！</span>`);
   await wait(DELAY);
   return true;
@@ -2440,6 +2644,7 @@ async function allyAct(a,q){
   if(s.type==='attack'){
     log(`<b>${a.name} の ${s.name}！</b>`);await attackMotion('ally',a);
     if(s.randomEachHit){
+      const poisonTargets=new Set();
       for(let h=0;h<(s.hits||1);h++){
         const alive=state.enemies.filter(x=>x.hp>0);
         if(!alive.length)break;
@@ -2447,25 +2652,33 @@ async function allyAct(a,q){
         t.hp=Math.max(0,t.hp-result.damage);
         await damageEffect('enemy',t,result,s);
         recordAttackRecovery(a,before-t.hp,s,'ally');
-        if(!result.miss)tryApplyFear(a,t,s);
+        if(!result.miss){tryApplyFear(a,t,s);poisonTargets.add(t)}
       }
+      poisonTargets.forEach(t=>tryApplyPoison(a,t,s));
     }else{
       const ts=s.target==='enemyAll'?state.enemies.filter(x=>x.hp>0):s.randomTarget?[sample(state.enemies.filter(x=>x.hp>0),1)[0]]:[state.enemies[q.target]?.hp>0?state.enemies[q.target]:state.enemies.find(x=>x.hp>0)];
-      for(const t of ts.filter(Boolean)){let landed=false;for(let h=0;h<(s.hits||1)&&t.hp>0;h++){const before=t.hp,result=attackResult(a,t,s);t.hp=Math.max(0,t.hp-result.damage);await damageEffect('enemy',t,result,s);recordAttackRecovery(a,before-t.hp,s,'ally');if(!result.miss)landed=true}if(landed)tryApplyFear(a,t,s)}
+      for(const t of ts.filter(Boolean)){let landed=false;for(let h=0;h<(s.hits||1)&&t.hp>0;h++){const before=t.hp,result=attackResult(a,t,s);t.hp=Math.max(0,t.hp-result.damage);await damageEffect('enemy',t,result,s);recordAttackRecovery(a,before-t.hp,s,'ally');if(!result.miss)landed=true}if(landed){tryApplyFear(a,t,s);tryApplyPoison(a,t,s)}}
     }
     applySelfCost(a,s);await wait(DELAY);
   }else if(s.type==='debuff'){
     const t=state.enemies[q.target]?.hp>0?state.enemies[q.target]:state.enemies.find(x=>x.hp>0);
     log(`<b>${a.name} の ${s.name}！</b>`);
-    if(t)tryApplyPetrify(a,t,s);
+    if(t){tryApplyPetrify(a,t,s);tryApplyPoison(a,t,s);}
     await wait(DELAY);
   }else if(s.type==='heal'){
     const z=party()[q.target],ts=s.target==='allyAll'?party().filter(x=>x.hp>0):[(z&&z.hp>0)?z:party().find(x=>x.hp>0)];
     log(`<b>${a.name} の ${s.name}！</b>`);
-    for(const t of ts.filter(Boolean)){const n=Math.max(s.minHeal||0,Math.round(t.maxHp*(s.healRate??(.3*(s.multiplier||1))))),actual=Math.min(n,t.maxHp-t.hp);t.hp+=actual;log(`${t.name} のHPが ${actual}回復！`);updateBattleHp('ally',t)}
+    for(const t of ts.filter(Boolean)){const n=Math.max(s.minHeal||0,Math.round(t.maxHp*(s.healRate??(.3*(s.multiplier||1))))),actual=Math.min(n,t.maxHp-t.hp);t.hp+=actual;log(`${t.name} のHPが ${actual}回復！`);updateBattleHp('ally',t);if(s.randomBuff){const kind=['atkBuff','defBuff','spdBuff'][Math.floor(Math.random()*3)];applyTimedStatus(t,kind,1);refreshBattleStatusIcons(t)}}
     await wait(DELAY);
-  }else if(s.type==='buffAtk'){party().forEach(x=>x.buffAtk=s.multiplier);log('味方全体の攻撃力アップ');await wait(DELAY)}
-  else if(s.type==='buffDef'){const t=party()[q.target]||party().find(x=>x.hp>0);if(t){t.buffDef=s.multiplier;log(`${t.name} の防御力アップ`)}await wait(DELAY)}
+  }else if(skillStatusKind(s)){
+    const kind=skillStatusKind(s),isBuff=kind.endsWith('Buff');
+    const candidates=isBuff?party().filter(x=>x.hp>0):state.enemies.filter(x=>x.hp>0);
+    const selected=s.target==='self'?a:(isBuff?party()[q.target]:state.enemies[q.target]);
+    const targets=s.target==='allyAll'||s.target==='enemyAll'?candidates:[selected?.hp>0?selected:candidates[0]];
+    log(`<b>${a.name} の ${s.name}！</b>`);
+    for(const t of targets.filter(Boolean))applyTimedStatus(t,kind,s.statusStacks||1);
+    await wait(DELAY);
+  }
 }
 async function enemyAct(e){
   if(await consumeFearTurn(e))return;
@@ -2474,28 +2687,43 @@ async function enemyAct(e){
   const s=usable&&state.enemyPoint>=ss.cost?ss:skills.NORMAL;
   if(s!==skills.NORMAL)state.enemyPoint-=s.cost;
   if(s.type==='heal'){
-    const ts=state.enemies.filter(x=>x.hp>0),t=[...ts].sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];
-    if(!t)return;
+    const aliveEnemies=state.enemies.filter(x=>x.hp>0),lowest=[...aliveEnemies].sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];
+    const targets=s.target==='allyAll'?aliveEnemies:[lowest];
+    if(!targets.filter(Boolean).length)return;
     log(`<b>${e.name} の ${s.name}！</b>`);
-    const n=Math.min(Math.max(s.minHeal||0,Math.round(t.maxHp*(s.healRate??(.3*(s.multiplier||1))))),t.maxHp-t.hp);
-    t.hp+=n;
-    log(`${t.name} のHPが ${n}回復！`);
-    updateBattleHp('enemy',t);
+    for(const t of targets.filter(Boolean)){
+      const n=Math.min(Math.max(s.minHeal||0,Math.round(t.maxHp*(s.healRate??(.3*(s.multiplier||1))))),t.maxHp-t.hp);
+      t.hp+=n;
+      log(`${t.name} のHPが ${n}回復！`);
+      updateBattleHp('enemy',t);
+      if(s.randomBuff){const kind=['atkBuff','defBuff','spdBuff'][Math.floor(Math.random()*3)];applyTimedStatus(t,kind,1);refreshBattleStatusIcons(t)}
+    }
     await wait(DELAY);
     return;
   }
   const alive=party().filter(x=>x.hp>0);
   if(!alive.length)return;
+  if(skillStatusKind(s)){
+    const kind=skillStatusKind(s),isBuff=kind.endsWith('Buff');
+    const candidates=isBuff?state.enemies.filter(x=>x.hp>0):alive;
+    const targets=s.target==='self'?[e]:s.target==='allyAll'||s.target==='enemyAll'?candidates:[candidates[Math.floor(Math.random()*candidates.length)]];
+    log(`<b>${e.name} の ${s.name}！</b>`);
+    for(const t of targets.filter(Boolean))applyTimedStatus(t,kind,s.statusStacks||1);
+    await wait(DELAY);
+    return;
+  }
   if(s.type==='debuff'){
     const t=alive[Math.floor(Math.random()*alive.length)];
     log(`<b>${e.name} の ${s.name}！</b>`);
     tryApplyPetrify(e,t,s);
+    tryApplyPoison(e,t,s);
     await wait(DELAY);
     return;
   }
   log(`<b>${e.name} の ${s.name}！</b>`);
   await attackMotion('enemy',e);
   if(s.randomEachHit){
+    const poisonTargets=new Set();
     for(let h=0;h<(s.hits||1);h++){
       const currentAlive=party().filter(x=>x.hp>0);
       if(!currentAlive.length)break;
@@ -2503,8 +2731,9 @@ async function enemyAct(e){
       t.hp=Math.max(0,t.hp-result.damage);
       await damageEffect('ally',t,result,s);
       recordAttackRecovery(e,before-t.hp,s,'enemy');
-      if(!result.miss)tryApplyFear(e,t,s);
+      if(!result.miss){tryApplyFear(e,t,s);poisonTargets.add(t)}
     }
+    poisonTargets.forEach(t=>tryApplyPoison(e,t,s));
   }else{
     const ts=s.target==='enemyAll'?alive:[alive[Math.floor(Math.random()*alive.length)]];
     for(const t of ts){
@@ -2516,7 +2745,7 @@ async function enemyAct(e){
         recordAttackRecovery(e,before-t.hp,s,'enemy');
         if(!result.miss)landed=true;
       }
-      if(landed)tryApplyFear(e,t,s);
+      if(landed){tryApplyFear(e,t,s);tryApplyPoison(e,t,s);}
     }
   }
   applySelfCost(e,s);

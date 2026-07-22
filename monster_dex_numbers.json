@@ -328,5 +328,71 @@
     "id": "SHADOW_SPIRIT",
     "name": "シャドウ",
     "race": "精霊"
+  },
+  {
+    "number": 56,
+    "i d": "TRENT",
+    "name": "トレント",
+    "race": "植物"
+  },
+  {
+    "number": 57,
+    "id": "HORNET",
+    "name": "ホーネット",
+    "race": "植物"
+  },
+  {
+    "number": 58,
+    "id": "NOCTUA",
+    "name": "ノクトゥア",
+    "race": "獣"
+  },
+  {
+    "number": 59,
+    "id": "SERPENT",
+    "name": "サーペント",
+    "race": "獣"
+  },
+  {
+    "number": 60,
+    "id": "VIPER",
+    "name": "ヴァイパー",
+    "race": "獣"
+  },
+  {
+  "number": 61,
+  "id": "GREAT_BEAR",
+  "name": "グレートベア",
+  "race": "獣"
+  },
+  {
+    "number": 62,
+    "id": "SYLPH",
+    "name": "シルフ",
+    "race": "精霊"
+  },
+  { 
+    "number": 63,
+    "id": "NYMPH",
+    "name": "ニンフ",
+    "race": "精霊"
+  },
+  {
+    "number": 64,
+    "id": "DRYS",
+    "name": "ドリュス",
+    "race": "精霊"
+  },
+  {
+    "number": 65,
+    "id": "DRYAD",
+    "name": "ドライアド",
+    "race": "精霊"
+  },
+  {
+    "number": 66,
+    "id": "HAMADRYAD",
+    "name": "ハマドリュアス",
+    "race": "精霊"
   }
 ]
