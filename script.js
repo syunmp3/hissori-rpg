@@ -64,11 +64,11 @@ SCREAM:{id:'SCREAM',name:'叫び声',star:1,type:'attack',attribute:'無',cost:1
 GHOST_ATTACK:{id:'GHOST_ATTACK',name:'ゴースト',star:1,type:'attack',attribute:'闇',cost:1,multiplier:1.4,target:'enemySingle'},
 SURPRISE_BOX:{id:'SURPRISE_BOX',name:'サプライズボックス',star:2,type:'attack',attribute:'無',cost:2,multiplier:2.2,target:'enemySingle',randomTarget:true},
 FIRE_PLAY:{id:'FIRE_PLAY',name:'火遊び',star:1,type:'attack',attribute:'火',cost:1,multiplier:1.2,target:'enemySingle'},
-BITE:{id:'BITE',name:'かみつく',star:1,type:'attack',attribute:'無',cost:1,multiplier:1.4,target:'enemySingle'},
+FANG:{id:'FANG',name:'ファング',star:1,type:'attack',attribute:'無',cost:1,multiplier:1.4,target:'enemySingle'},
 PIERCE:{id:'PIERCE',name:'ピアース',star:1,type:'attack',attribute:'無',cost:1,multiplier:1.4,target:'enemySingle'},
 SACRIFICE:{id:'SACRIFICE',name:'生贄',star:2,type:'attack',attribute:'闇',cost:2,multiplier:2.5,target:'enemySingle',selfHpCostRate:.1},
 STONE_BODY:{id:'STONE_BODY',name:'ストーンボディ',star:1,type:'passive',attribute:'無',cost:0,target:'self',active:false,passive:{damageTaken:.95}},
-GIANT_STRIKE:{id:'GIANT_STRIKE',name:'巨大な一撃',star:3,type:'attack',attribute:'無',cost:2,multiplier:2.4,target:'enemySingle'},
+HEAVY_SMASH:{id:'HEAVY_SMASH',name:'ヘビースマッシュ',star:3,type:'attack',attribute:'無',cost:2,multiplier:2.4,target:'enemySingle'},
 HELL_CALL:{id:'HELL_CALL',name:'地獄の呼び声',star:3,type:'passive',attribute:'火',cost:0,target:'self',active:false,passive:{attributeDamage:{火:1.1,闇:1.1}}},
 WATER_MAGIC:{id:'WATER_MAGIC',name:'ウォーターマジック',star:1,type:'attack',attribute:'水',cost:1,multiplier:1.2,target:'enemySingle'},
 FLOWER_SWORD:{id:'FLOWER_SWORD',name:'フラワーソード',star:1,type:'attack',attribute:'自然',cost:1,multiplier:1.2,target:'enemySingle'},
@@ -119,12 +119,12 @@ const M=[
 ["MIMIC","ミミック","物質","闇",2,"SURPRISE_BOX",125,72,52,38,"攻撃型"],
 ["BEAR","ベア","獣","自然",1,"POWER_ATTACK",115,58,44,32,"攻撃型"],
 ["FOX","フォックス","獣","火",2,"FIRE_PLAY",92,60,38,72,"速度型"],
-["WILD_BOAR","ワイルドボア","獣","無",2,"BITE",130,68,52,34,"攻撃型"],
+["WILD_BOAR","ワイルドボア","獣","無",2,"FANG",130,68,52,34,"攻撃型"],
 ["SHAMAN","シャーマン","亜人","光",2,"SACRIFICE",105,52,58,46,"防御型"],
 ["STONE","ストーン","物質","無",1,"STONE_BODY",120,36,70,18,"防御型"],
 ["CRYSTAL","クリスタル","物質","光",2,"STONE_BODY",105,58,68,38,"防御型"],
 ["IRON","アイアン","物質","無",2,"STONE_BODY",135,48,82,20,"防御型"],
-["GOLEM","ゴーレム","物質","無",3,"GIANT_STRIKE",195,92,118,22,"防御型"],
+["GOLEM","ゴーレム","物質","無",3,"HEAVY_SMASH",195,92,118,22,"防御型"],
 ["THIEF","シーフ","亜人","無",1,"DOUBLE_ATTACK",78,48,30,74,"速度型"],
 ["IMP","インプ","悪魔","闇",1,"SCREAM",76,50,30,66,"速度型"],
 ["GARGOYLE","ガーゴイル","悪魔","無",2,"POWER_ATTACK",135,72,78,42,"防御型"],
@@ -139,21 +139,21 @@ const M=[
 ["KOKKORU","コッコル","獣","火",2,"CHICKEN_SCREAM",125,72,50,62,"攻撃型"],
 ["COCKATRICE","コカトリス","獣","火",4,"COCKA_ROAR",240,130,95,80,"攻撃型"],
 ["HORN_RABBIT","ホーンラビット","獣","無",1,"PIERCE",78,50,30,76,"速度型"],
-["RAT","ラット","獣","無",1,"BITE",66,42,27,84,"速度型"],
+["RAT","ラット","獣","無",1,"FANG",66,42,27,84,"速度型"],
 ["SPIDER","スパイダー","植物","闇",1,"PIERCE",88,52,40,58,"攻撃型"],
 ["VAMPEEL","ヴァンピール","アンデッド","闇",2,"BLOOD_CRAVING",115,68,42,82,"速度型"],
 ["VAMPIRE","ヴァンパイア","アンデッド","闇",3,"BLOOD_DRAIN",185,112,68,92,"攻撃型"],
 ["TRENT","トレント","植物","自然",2,"ROOT_IMPACT",165,88,98,48,"通常"],
 ["SYLPH","シルフ","精霊","自然",1,"WIND_CUTTER",90,48,42,82,"通常"],
-["NYMPH","ニンフ","精霊","光",2,"NONE",135,72,78,68,"通常"],
+["NYMPH","ニンフ","精霊","光",2,"MAGIC_COLLECTOR",135,72,78,68,"通常"],
 ["DRYAD","ドライアド","精霊","自然",3,"FOREST_VEIL",182,98,92,88,"通常"],
-["DRYS","ドリュス","精霊","自然",1,"NONE",102,52,46,74,"通常"],
+["DRYS","ドリュス","精霊","自然",1,"STORE_SP",102,52,46,74,"通常"],
 ["HAMADRYAD","ハマドリュアス","精霊","自然",4,"ANCIENT_BLOSSOM",255,132,122,108,"通常"],
-["HORNET","ホーネット","植物","無",1,"NONE",94,58,40,78,"通常"],
-["NOCTUA","ノクトゥア","獣","闇",1,"NONE",96,54,42,80,"通常"],
+["HORNET","ホーネット","植物","無",1,"PIERCE",94,58,40,78,"通常"],
+["NOCTUA","ノクトゥア","獣","闇",1,"NIGHT_VISION",96,54,42,80,"通常"],
 ["SERPENT","サーペント","獣","無",1,"BIND",112,60,46,64,"通常"],
 ["VIPER","ヴァイパー","獣","闇",2,"VENOM_FANG",148,92,58,86,"通常"],
-["GREAT_BEAR","グレートベア","獣","自然",2,"NONE",172,102,82,58,"通常"],
+["GREAT_BEAR","グレートベア","獣","自然",2,"HEAVY_SMASH",172,102,82,58,"通常"],
 ];
 const monsterDB=Object.fromEntries(M.map(x=>[x[0],{id:x[0],name:x[1],race:x[2],attribute:x[3],baseStar:x[4],solid:x[5],hp:x[6],atk:x[7],def:x[8],spd:x[9],growth:x[10],expGrowth:x[11]||'通常型',expMultiplier:x[12]||1}]));
 const monsterDexNo={"SLIME_BLUE":1,"SLIME_RED":2,"SLIME_YELLOW":3,"SLIME_GREEN":4,"MINIC":5,"MIMIC":6,"STONE":7,"MANDRAGORA":8,"SEED":9,"FLOWER_MAN":10,"WOLF":11,"HIGH_WOLF":12,"BEAR":13,"KOKOPI":14,"KOKKORU":15,"COCKATRICE":16,"GOBLIN":17,"HIGH_GOBLIN":18,"KOBOLD":19,"ORC":20,"HIGH_ORC":21,"THIEF":22,"DEMON_KID":23,"MINI_FAIRY":24,"FAIRY":25,"LIZARD_KID":26,"LIZARD":27,"HIGH_LIZARD":28,"CRYSTAL":29,"IRON":30,"GOLEM":31,"SPIDER":32,"BAT":33,"BLOOD_BAT":34,"HORN_RABBIT":35,"RAT":36,"FOX":37,"WILD_BOAR":38,"WITCH":39,"SHAMAN":40,"ZOMBIE":41,"SKELETON":42,"GHOST":43,"VAMPEEL":44,"VAMPIRE":45,"MINI_DEMON":46,"DEMON":47,"IMP":48,"GARGOYLE":49,"HELL_HOUND":50,"FLAME":51,"AQUA_SPIRIT":52,"BOLT_SPIRIT":53,"LEAF_SPIRIT":54,"SHADOW_SPIRIT":55,
@@ -237,7 +237,7 @@ const special={
   ['IRON|STONE']:'GOLEM',
   ['DRYS|NYMPH']:'DRYAD'
 };
-const FUSION_GENERATED_SKILLS_BY_MONSTER={COCKATRICE:['STONE_GAZE'],DRYAD:['BLOSSOM_GIFT']};
+const FUSION_GENERATED_SKILLS_BY_MONSTER={COCKATRICE:['STONE_GAZE'],HAMADRYAD:['BLOSSOM_GIFT']};
 const STAT_GROWTH_BASE={hp:10,atk:5,def:3,spd:2};
 const STAT_GROWTH_TYPES={
   攻撃型:{hp:.9,atk:1.2,def:.7,spd:1},
@@ -405,11 +405,13 @@ function normalizeDungeonProgress(value){
   }
   return normalized;
 }
+const LEGACY_SKILL_ID_MAP={BITE:'FANG',GIANT_STRIKE:'HEAVY_SMASH'};
+function migrateSkillId(id){return LEGACY_SKILL_ID_MAP[id]||id}
 function restoreOwnedMonster(raw,usedUids){
   if(!raw||!monsterDB[raw.id])return null;
   const level=Math.round(clampNumber(raw.level,1,100,1));
   const validSkills=Array.isArray(raw.skills)
-    ?[...new Set(raw.skills.filter(id=>skills[id]))].slice(0,4)
+    ?[...new Set(raw.skills.map(migrateSkillId).filter(id=>skills[id]))].slice(0,4)
     :null;
   const monster=makeOwned(raw.id,level,null,validSkills?.length?validSkills:null);
   if(!monster.skills.includes('NORMAL'))monster.skills.unshift('NORMAL');
