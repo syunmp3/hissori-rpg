@@ -411,14 +411,21 @@ state.nextSpBonus=0;
 state.point=Math.min(10,state.point+gainedPoints);
 if(gainedPoints>0)log(`${gainedPoints}SP獲得`);
 state.enemyPoint=Math.min(9,state.enemyPoint+2);state.queue=[null,null,null];state.selectedAlly=allies.findIndex(a=>a.hp>0);state.selectedEnemy=state.enemies.findIndex(e=>e.hp>0);state.isProcessing=false;renderBattle();updateHeader()}
+function addDungeonObtainedItem(id,name,count=1){
+  const current=state.dungeonObtainedItems[id]||{name,count:0};
+  current.count+=count;
+  state.dungeonObtainedItems[id]=current;
+}
 function rollBattleDrops(){
   const drops=[];
   if(Math.random()<GACHA_TICKET_DROP_RATE){
     state.gachaTickets++;
+    addDungeonObtainedItem('GACHA_TICKET','ガチャチケット',1);
     drops.push('ガチャチケット ×1');
   }
   if([1,2,3].includes(state.dungeon?.id)&&Math.random()<.10){
     state.items.BRONZE_COIN++;
+    addDungeonObtainedItem('BRONZE_COIN','銅のコイン',1);
     drops.push('銅のコイン ×1');
   }
   return drops;
@@ -557,10 +564,12 @@ function showRecruit(cleared=true){
   state.dungeonStartSnapshot=null;
   saveGame({force:true});
   const candidates=[...state.recruits.entries()].map(([id,level])=>({id,level}));
+  const obtainedItems=Object.values(state.dungeonObtainedItems||{}).filter(item=>item.count>0);
   app.innerHTML=`<div class="card result"><div class="title">${cleared?'ダンジョンクリア！':'途中帰還'}</div>
-  <div class="muted">${cleared?`${difficultyConfig().name}をクリアしました（累計${state.dungeonProgress[state.dungeon.id][state.difficulty]}回）。`:'ボス撃破・ダンジョンクリアにはカウントされません。'}</div>
-  <div class="muted">${candidates.length?'仲間候補から1体選択してください。':'今回は仲間候補なし'}</div>
-  ${candidates.length?`<div class="candidate-grid">${candidates.map(candidate=>`<button class="artwork-candidate" onclick="takeRecruit('${candidate.id}',${candidate.level})">${monsterArtwork(candidate.id,'medium')}<span>${monsterDB[candidate.id].name}</span><span class="muted">Lv${candidate.level}</span></button>`).join('')}</div>`:'<button class="wide" onclick="home()">ホームへ戻る</button>'}
+  ${cleared?`<div class="muted">${difficultyConfig().name}をクリアしました（累計${state.dungeonProgress[state.dungeon.id][state.difficulty]}回）。</div>`:''}
+  <div class="result-section"><b>取得アイテム</b><div class="obtained-item-list">${obtainedItems.length?obtainedItems.map(item=>`<div class="obtained-item-row"><span>${item.name}</span><b>×${item.count}</b></div>`).join(''):'<div class="muted">なし</div>'}</div></div>
+  <div class="result-section"><b>仲間候補</b>${candidates.length?`<div class="muted">仲間候補から1体選択してください。</div><div class="candidate-grid">${candidates.map(candidate=>`<button class="artwork-candidate" onclick="takeRecruit('${candidate.id}',${candidate.level})">${monsterArtwork(candidate.id,'medium')}<span>${monsterDB[candidate.id].name}</span><span class="muted">Lv${candidate.level}</span></button>`).join('')}</div>`:'<div class="muted">なし</div>'}</div>
+  ${candidates.length?'':'<button class="wide" onclick="home()">ホームへ戻る</button>'}
   </div>`;
   homeBtn.style.display=candidates.length?'none':'inline-block';
   skipBtn.style.display='none';
@@ -578,6 +587,7 @@ showVersionUpdateNotice();
 window.returnHomeAfterDefeat=returnHomeAfterDefeat;
 
 window.confirmDungeonEntry=confirmDungeonEntry;
+window.showDungeonChallengeConfirm=showDungeonChallengeConfirm;
 window.confirmRetire=confirmRetire;
 window.returnToBattle=returnToBattle;
 window.retireDungeon=retireDungeon;
@@ -585,6 +595,7 @@ window.continueAfterResult=continueAfterResult;
 window.recoverAtRest=recoverAtRest;
 window.continueFromRest=continueFromRest;
 window.returnFromRest=returnFromRest;
+window.confirmReturnFromRest=confirmReturnFromRest;
 
 retireBtn.onclick=confirmRetire;
 

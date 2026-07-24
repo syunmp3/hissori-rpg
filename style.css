@@ -484,6 +484,32 @@ button:disabled{
 .battle-status-icons.empty{visibility:hidden}
 .battle-status-icon{position:relative;display:inline-flex;width:23px;height:23px;flex:0 0 23px}
 .battle-status-icon img{display:block;width:100%;height:100%;object-fit:contain;image-rendering:pixelated}
+
+.screen-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.screen-title-row>.title{margin-bottom:0}
+.compact-action,.list-toolbar button,.modal-close{min-height:32px;padding:5px 9px;background:#4c5d88;font-size:11px}
+.list-toolbar{display:flex;gap:5px}
+.currency-strip{display:flex;align-items:center;justify-content:flex-end;gap:8px;white-space:nowrap}
+.currency-strip span{display:flex;align-items:center;gap:2px;font-size:12px}
+.item-artwork-tiny{width:22px;height:22px;object-fit:contain;image-rendering:pixelated}
+.modal-backdrop{position:fixed;z-index:2000;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;padding:20px}
+.ui-modal{width:min(390px,100%);max-height:80vh;overflow:auto;background:#292929;border:1px solid #666;border-radius:13px;padding:14px;box-shadow:0 14px 40px #000}
+.modal-button-grid,.filter-main-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.modal-button-grid button.active,.filter-main-grid button.active,.filter-choice-grid button.active{outline:2px solid #f0cf50;background:#7357b8}
+.filter-choice-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:12px}
+.star-filter-grid{grid-template-columns:repeat(3,1fr)}
+.filter-choice-grid button{min-width:0;background:#444}
+.filter-choice-grid img{width:28px;height:28px}
+.rare-filter-star{color:#ffd34d;font-size:25px;text-shadow:0 0 5px #ffb300}
+.filter-star-five{display:inline-block;line-height:1.05}
+.modal-item-detail{text-align:center}
+.modal-item-detail p{text-align:left;line-height:1.6}
+.shop-row{cursor:pointer}
+.gacha-rate-row span{display:flex;align-items:center;gap:7px}
+.detail-title-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.favorite-button{flex:0 0 36px;width:36px;height:36px;min-height:36px;padding:0;border-radius:50%;background:#666;color:#aaa;font-size:21px}
+.favorite-button.active{background:#765d16;color:#ffd34d;box-shadow:0 0 0 2px #ffd34d}
+.bulk-party-fixed{position:sticky;bottom:0;z-index:20;padding:8px 0;background:linear-gradient(transparent,#292929 18%)}
 .battle-status-icon b{position:absolute;right:-1px;bottom:-2px;min-width:11px;height:12px;padding:0 2px;border-radius:6px;background:#111;color:#fff;font-size:9px;line-height:12px;text-align:center;font-weight:900;text-shadow:0 1px 1px #000}
 .battle-unit .ally-action{margin-top:6px;min-height:14px}
 .battle-unit .enemy-result{min-height:27px;display:flex;align-items:center;justify-content:center;margin-top:4px}
@@ -513,3 +539,18 @@ button:disabled{
 .shop-tabs button.active{outline:2px solid #73c9ff;background:#26394c}
 .party-order-controls{display:flex;gap:5px}
 .party-order-controls button{min-width:40px;padding:8px}
+
+/* Ver1.76.3 ダンジョンUI調整 */
+.battle-item-icon-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.battle-item-icon-option{position:relative;min-width:0;height:64px;padding:6px;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;flex-direction:column;gap:2px!important}
+.battle-item-icon-option .item-artwork-small{width:38px;height:38px}
+.battle-item-icon-option small{position:absolute;right:5px;bottom:3px;font-size:10px;background:#171717cc;border-radius:8px;padding:1px 4px}
+.battle-item-icon-option.no-item span{font-size:12px}
+.confirm-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.confirm-actions .wide{margin-top:0}
+.entry-cost-notice{margin-top:12px;padding:10px;border:1px solid #666;border-radius:9px;background:#242424}
+.entry-cost-row{display:flex;align-items:center;gap:8px;margin-top:8px}
+.entry-cost-row b{margin-left:auto;color:#ffe073}
+.obtained-item-list{margin-top:8px}
+.obtained-item-row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid #ffffff18}
+.obtained-item-row:last-child{border-bottom:0}

@@ -1,4 +1,4 @@
-const GAME_VERSION='Ver1.76.2';
+const GAME_VERSION='Ver1.76.5';
 const VERSION_NOTICE_KEY='hissoriRpgLastShownVersion';
 const MAX_POINT=9, DELAY=500;
 const ATTRS=['火','水','雷','自然','闇','光'];

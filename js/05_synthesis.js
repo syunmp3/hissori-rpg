@@ -57,7 +57,7 @@ function selectedSynthesisCount(){
 }
 function renderSynthesis(){
   const baseCandidates=state.owned.filter(x=>x.level<100);
-  const materialCandidates=state.owned.filter(x=>x.level<100&&x.uid!==state.synthesisBase&&!party().includes(x));
+  const materialCandidates=state.owned.filter(x=>x.level<100&&!x.favorite&&x.uid!==state.synthesisBase&&!party().includes(x));
   if(state.synthesisStep==='base'){
     app.innerHTML=`
       <div class="card" style="padding-bottom:70px;">
@@ -77,7 +77,7 @@ function renderSynthesis(){
     const itemPanel=EXP_ITEM_IDS.map(id=>{
       const item=ITEM_DB[id],owned=state.items[id]||0,amount=Math.min(itemAmounts[id]||0,owned);
       return `<div class="listitem synthesis-item-row">
-        <div class="synthesis-item-info"><div class="item-star">${itemStarDisplay(item)}</div><div><b>${item.name}</b><div class="muted">1個：${item.exp}EXP　所持：${owned}個</div></div></div>
+        <div class="synthesis-item-info">${itemArtwork(id,'small')}<div><b>${item.name}</b><div class="item-star">${itemStarDisplay(item)}</div><div class="muted">1個：${item.exp}EXP　所持：${owned}個</div></div></div>
         <div class="item-amount-controls">
           <button class="mini" onclick="changeSynthesisItemAmount('${id}',-1)" ${amount<=0?'disabled':''}>－</button>
           <button class="item-amount-value" onclick="setSynthesisItemAmount('${id}',${owned})" ${owned<=0?'disabled':''}>${amount}</button>
@@ -121,7 +121,7 @@ function changeSynthesisItemAmount(id,delta){
 function startSynthesis(){
   const base=state.owned.find(x=>x.uid===state.synthesisBase);
   if(!base)return;
-  const validMonsterIds=(state.synthesisMaterials||[]).filter(uid=>state.owned.some(x=>x.uid===uid&&x.uid!==base.uid&&!party().includes(x)));
+  const validMonsterIds=(state.synthesisMaterials||[]).filter(uid=>state.owned.some(x=>x.uid===uid&&!x.favorite&&x.uid!==base.uid&&!party().includes(x)));
   let gainedExp=validMonsterIds.reduce((sum,uid)=>{
     const monster=state.owned.find(x=>x.uid===uid);
     return sum+(monster?synthesisMaterialExp(monster):0);

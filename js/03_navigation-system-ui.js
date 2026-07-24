@@ -86,7 +86,7 @@ function selectGameMode(mode){
 function home(){
   if(state.fusionLocked)return;
   if(!state.mode){showModeSelection();return}
-state.screen='home';state.fusionLocked=false;saveGame();const lastDungeon=state.lastDungeonId?dungeonInfo(state.lastDungeonId):null;const lastDifficulty=state.lastDungeonDifficulty&&DIFFICULTIES[state.lastDungeonDifficulty]?DIFFICULTIES[state.lastDungeonDifficulty]:null;app.innerHTML=`<div class="card"><div class="title">ホーム</div><div class="muted">${state.mode==='development'?'開発用':'通常プレイ'}</div>${state.saveLoadError?`<div class="save-warning">${state.saveLoadError}</div>`:''}</div><div class="grid menu">${lastDungeon&&lastDifficulty?`<button class="last-dungeon-button" onclick="retryLastDungeon()">前回のダンジョンに挑戦<small>${lastDungeon.name}・${lastDifficulty.name}</small></button>`:''}<button onclick="showDungeons()">ダンジョン</button><button onclick="showMonsters()">モンスター</button><button onclick="showItems()">アイテム</button><button onclick="showShop()">ショップ</button><button onclick="showFusion()">配合</button><button onclick="showSynthesis()">モンスター合成</button><button onclick="showBook()">図鑑</button><button onclick="showGacha()">ガチャ<small>チケット ${state.gachaTickets}枚</small></button><button onclick="showDataManagement()">データ管理</button></div><div class="card"><div class="title">現在のパーティ</div>${party().map(x=>`<div class="listitem artwork-list-row">${monsterArtwork(x,'small')}<div><b>${x.name}</b> Lv${x.level} ${starDisplay(x)} ＋${x.plusValue||0}<div class="muted">HP${x.maxHp} 攻${x.atk} 防${x.def} 速${x.spd}</div></div></div>`).join('')}</div>`;updateHeader()}
+state.screen='home';state.fusionLocked=false;saveGame();const lastDungeon=state.lastDungeonId?dungeonInfo(state.lastDungeonId):null;const lastDifficulty=state.lastDungeonDifficulty&&DIFFICULTIES[state.lastDungeonDifficulty]?DIFFICULTIES[state.lastDungeonDifficulty]:null;app.innerHTML=`<div class="card"><div class="screen-title-row"><div><div class="title">ホーム</div><div class="muted">${state.mode==='development'?'開発用':'通常プレイ'}</div></div>${currencyStrip()}</div>${state.saveLoadError?`<div class="save-warning">${state.saveLoadError}</div>`:''}</div><div class="grid menu">${lastDungeon&&lastDifficulty?`<button class="last-dungeon-button" onclick="retryLastDungeon()">前回のダンジョンに挑戦<small>${lastDungeon.name}・${lastDifficulty.name}</small></button>`:''}<button onclick="showDungeons()">ダンジョン</button><button onclick="showMonsters()">モンスター</button><button onclick="showItems()">アイテム</button><button onclick="showShop()">ショップ</button><button onclick="showFusion()">配合</button><button onclick="showSynthesis()">モンスター合成</button><button onclick="showBook()">図鑑</button><button onclick="showGacha()">ガチャ<small>チケット ${state.gachaTickets}枚</small></button><button onclick="showDataManagement()">データ管理</button></div><div class="card"><div class="title">現在のパーティ</div>${party().map(x=>`<div class="listitem artwork-list-row">${monsterArtwork(x,'small')}<div><b>${x.name}</b> Lv${x.level} ${starDisplay(x)} ＋${x.plusValue||0}<div class="muted">HP${x.maxHp} 攻${x.atk} 防${x.def} 速${x.spd}</div></div></div>`).join('')}</div>`;updateHeader()}
 function retryLastDungeon(){
   const id=state.lastDungeonId;
   const difficulty=state.lastDungeonDifficulty;
@@ -94,41 +94,53 @@ function retryLastDungeon(){
   if(!difficultyUnlocked(id,difficulty)){confirmDungeonEntry(id);return}
   startDungeon(id,difficulty);
 }
+const ITEM_FILTERS={all:'すべて',dungeon:'ダンジョンアイテム',material:'配合・合成素材',ticket:'チケット・カギ',other:'その他'};
+const ITEM_CATEGORIES={
+  dungeon:new Set(['HEAL_POTION','RETURN_SCROLL','MONSTER_FOOD_1']),
+  material:new Set(['EXP_DROP','EXP_CRYSTAL','EXP_ORB','SKILL_BOOK_STONE_GAZE','SKILL_BOOK_BLOSSOM_GIFT']),
+  ticket:new Set(['GACHA_TICKET','APPEARANCE_TICKET','SKILL_TICKET','KEY_CHAMPION_NORMAL'])
+};
+function currencyStrip(){
+  return `<div class="currency-strip">${['GOLD_COIN','SILVER_COIN','BRONZE_COIN'].map(id=>`<span>${itemArtwork(id,'tiny')}<b>${state.items[id]||0}</b></span>`).join('')}</div>`;
+}
+function ticketItemRows(){
+  return [
+    {id:'GACHA_TICKET',name:'ガチャチケット',count:state.gachaTickets,image:'capsule_ticket.png',description:'ガチャを1回引くために使用する。'},
+    {id:'APPEARANCE_TICKET',name:'見た目変更チケット',count:state.appearanceTickets,image:'skin_ticket.png',description:'対象モンスターの別の見た目を解放するために使用する。'}
+  ];
+}
+function itemCategory(id){
+  for(const [category,ids] of Object.entries(ITEM_CATEGORIES))if(ids.has(id))return category;
+  return 'other';
+}
 function showItems(message=''){
   state.screen='items';
-    const ticketRows=`
-    <div class="listitem item-list-row ticket-item-row">
-      <div class="item-icon"><img class="item-artwork item-artwork-small" src="assets/items/capsule_ticket.png" alt="ガチャチケット"></div>
-      <div class="item-list-main"><b>ガチャチケット</b><div class="muted">ガチャを1回引くために使用する。</div></div>
-      <div class="item-count">×${state.gachaTickets}</div>
-    </div>
-    <div class="listitem item-list-row ticket-item-row">
-      <div class="item-icon"><img class="item-artwork item-artwork-small" src="assets/items/skin_ticket.png" alt="見た目変更チケット"></div>
-      <div class="item-list-main"><b>見た目変更チケット</b><div class="muted">対象モンスターの別の見た目を解放するために使用する。</div></div>
-      <div class="item-count">×${state.appearanceTickets}</div>
-    </div>`;
-  app.innerHTML=`
-    <div class="card item-inventory-card">
-      <div class="title">所持アイテム</div>
-      ${message?`<div class="save-message">${message}</div>`:''}
-      <div class="item-section-title">チケット</div>
-      ${ticketRows}
-      <div class="item-section-title">経験値素材</div>
-      ${ITEM_IDS.map(id=>{
-        const item=ITEM_DB[id];
-        return `<div class="listitem item-list-row">
-          <div class="item-star">${itemArtwork(id,'small')}</div>
-          <div class="item-list-main">
-            <b>${item.name}</b>
-            <div class="muted">${item.description}</div>
-          </div>
-          <div class="item-count">×${state.items[id]||0}</div>
-        </div>`;
-      }).join('')}
-      ${state.mode==='development'?'<button class="wide dev-action" onclick="developerAddExpItems()">開発用：経験値素材を各10個追加</button>':''}
-    </div>`;
+  const virtual=ticketItemRows().filter(x=>x.count>0).map(x=>({...x,category:'ticket',html:`<img class="item-artwork item-artwork-small" src="assets/items/${x.image}" alt="${x.name}">`}));
+  const inventory=ITEM_IDS.filter(id=>!['BRONZE_COIN','SILVER_COIN','GOLD_COIN'].includes(id)&&(state.items[id]||0)>0).map(id=>({id,name:ITEM_DB[id].name,count:state.items[id],description:ITEM_DB[id].description,category:itemCategory(id),html:itemArtwork(id,'small')}));
+  const rows=[...virtual,...inventory].filter(x=>state.itemFilter==='all'||x.category===state.itemFilter);
+  app.innerHTML=`<div class="card item-inventory-card">
+    <div class="screen-title-row"><div class="title">所持アイテム</div><button class="compact-action" onclick="openItemFilterModal()">切り換え</button></div>
+    <div class="muted">表示：${ITEM_FILTERS[state.itemFilter]||ITEM_FILTERS.all}</div>
+    ${message?`<div class="save-message">${message}</div>`:''}
+    ${rows.map(x=>`<div class="listitem item-list-row">${x.html}<div class="item-list-main"><b>${x.name}</b><div class="muted">${x.description}</div></div><div class="item-count">×${x.count}</div></div>`).join('')||'<div class="listitem muted">該当する所持アイテムはありません。</div>'}
+    ${state.mode==='development'?'<button class="wide dev-action" onclick="developerAddExpItems()">開発用：経験値素材を各10個追加</button>':''}
+  </div>`;
   updateHeader();
 }
+function openModal(title,content){
+  closeModal();
+  const modal=document.createElement('div');
+  modal.id='uiModal';
+  modal.className='modal-backdrop';
+  modal.onclick=event=>{if(event.target===modal)closeModal()};
+  modal.innerHTML=`<div class="ui-modal" role="dialog" aria-modal="true"><div class="screen-title-row"><div class="title">${title}</div><button class="modal-close" onclick="closeModal()">閉じる</button></div>${content}</div>`;
+  document.body.appendChild(modal);
+}
+function closeModal(){document.getElementById('uiModal')?.remove()}
+function openItemFilterModal(){
+  openModal('アイテムの絞り込み',`<div class="modal-button-grid">${Object.entries(ITEM_FILTERS).map(([id,label])=>`<button class="${state.itemFilter===id?'active':''}" onclick="setItemFilter('${id}')">${label}</button>`).join('')}</div>`);
+}
+function setItemFilter(filter){state.itemFilter=ITEM_FILTERS[filter]?filter:'all';closeModal();showItems()}
 function developerAddExpItems(){
   if(state.mode!=='development')return;
   for(const id of EXP_ITEM_IDS)state.items[id]=(state.items[id]||0)+10;
@@ -144,20 +156,20 @@ function showGacha(message='',won=false){
     <div class="muted">1回につきガチャチケットを1枚使用します。</div>
     <div class="gacha-content-title">──────── ガチャ内容 ────────</div>
     <div class="gacha-rate-list">
-      <div class="gacha-rate-row"><span>🟢 ★1 経験のしずく</span><b>50%</b></div>
-      <div class="gacha-rate-row"><span>🔵 ★2 経験の結晶</span><b>10%</b></div>
-      <div class="gacha-rate-row"><span>🟣 ★3 経験の宝珠</span><b>5%</b></div>
+      <div class="gacha-rate-row"><span>${itemArtwork('EXP_DROP','tiny')} ★1 経験のしずく</span><b>50%</b></div>
+      <div class="gacha-rate-row"><span>${itemArtwork('EXP_CRYSTAL','tiny')} ★2 経験の結晶</span><b>10%</b></div>
+      <div class="gacha-rate-row"><span>${itemArtwork('EXP_ORB','tiny')} ★3 経験の宝珠</span><b>5%</b></div>
       <div class="gacha-rate-gap"></div>
-      <div class="gacha-rate-row"><span>🎟️ 見た目変更チケット</span><b>5%</b></div>
-      <div class="gacha-rate-row"><span>🎟️ スキル交換チケット</span><b>3%</b></div>
-      <div class="gacha-rate-row gacha-rate-miss"><span>📦 はずれ</span><b>27%</b></div>
+      <div class="gacha-rate-row"><span><img class="item-artwork item-artwork-tiny" src="assets/items/skin_ticket.png" alt=""> 見た目変更チケット</span><b>5%</b></div>
+      <div class="gacha-rate-row"><span>${itemArtwork('SKILL_TICKET','tiny')} スキル交換チケット</span><b>3%</b></div>
+      <div class="gacha-rate-row gacha-rate-miss"><span>はずれ</span><b>27%</b></div>
     </div>
     <div class="gacha-content-title">──────────────────────</div>
     ${message?`<div class="gacha-result ${won?'win':'miss'}">${message}</div>`:''}
     <button class="wide btn-next" onclick="drawGacha()" ${state.gachaTickets<1?'disabled':''}>1回引く</button>
     <div class="gacha-owned-summary">
-      <span>🎫 ガチャ ${state.gachaTickets}枚</span>
-      <span>🎟️ 見た目変更 ${state.appearanceTickets}枚</span>
+      <span><img class="item-artwork item-artwork-tiny" src="assets/items/capsule_ticket.png" alt=""> ガチャ ${state.gachaTickets}枚</span>
+      <span><img class="item-artwork item-artwork-tiny" src="assets/items/skin_ticket.png" alt=""> 見た目変更 ${state.appearanceTickets}枚</span>
     </div>
     ${state.mode==='development'?'<button class="wide dev-action" onclick="developerAddGachaTickets()">開発用：ガチャチケットを10枚追加</button>':''}
   </div>`;
@@ -214,12 +226,18 @@ function showShop(tab=state.shopTab||'coin',message=''){
   state.shopTab=tab==='skill'?'skill':'coin';
   recordOwnedSkillsForExchange();
   const offers=state.shopTab==='skill'?SKILL_EXCHANGE_OFFERS:COIN_SHOP_OFFERS;
-  app.innerHTML=`<div class="card"><div class="title">ショップ</div>
+  const shopCurrency=state.shopTab==='skill'?`<div class="currency-strip"><span>${itemArtwork('SKILL_TICKET','tiny')}<b>${state.items.SKILL_TICKET||0}</b></span></div>`:currencyStrip();
+  app.innerHTML=`<div class="card"><div class="screen-title-row"><div class="title">ショップ</div>${shopCurrency}</div>
   <div class="shop-tabs"><button class="${state.shopTab==='coin'?'active':''}" onclick="showShop('coin')">コインショップ</button><button class="${state.shopTab==='skill'?'active':''}" onclick="showShop('skill')">スキル交換所</button></div>
   ${message?`<div class="save-message">${message}</div>`:''}
   ${state.shopTab==='skill'?`<div class="muted">一度入手したことがあるスキルの書を、スキル交換チケットで交換できます。</div>`:''}
-  ${offers.map((offer,index)=>{const unlocked=!offer.requiredSkill||state.unlockedSkillExchange.has(offer.requiredSkill),canBuy=unlocked&&(state.items[offer.cost]||0)>=offer.costCount;return`<div class="listitem shop-row ${unlocked?'':'locked'}">${itemArtwork(offer.get,'small')}<div class="item-list-main"><b>${unlocked?ITEM_DB[offer.get].name:'？？？'} ×${offer.getCount}</b><div class="muted">${unlocked?`${ITEM_DB[offer.cost].name} ×${offer.costCount}`:`${skillDisplayName(offer.requiredSkill)}を一度入手すると解放`}</div></div><button onclick="buyShopOffer('${state.shopTab}',${index})" ${canBuy?'':'disabled'}>交換</button></div>`}).join('')}</div>`;
+  ${offers.map((offer,index)=>{const unlocked=!offer.requiredSkill||state.unlockedSkillExchange.has(offer.requiredSkill),canBuy=unlocked&&(state.items[offer.cost]||0)>=offer.costCount;return`<div class="listitem shop-row ${unlocked?'':'locked'}" onclick="showShopItemDetail('${offer.get}',${unlocked})">${itemArtwork(offer.get,'small')}<div class="item-list-main"><b>${unlocked?ITEM_DB[offer.get].name:'？？？'} ×${offer.getCount}</b><div class="muted">${unlocked?`${ITEM_DB[offer.cost].name} ×${offer.costCount}`:'？？？を一度入手すると解放'}</div></div><button onclick="event.stopPropagation();buyShopOffer('${state.shopTab}',${index})" ${canBuy?'':'disabled'}>交換</button></div>`}).join('')}</div>`;
   updateHeader();
+}
+function showShopItemDetail(itemId,unlocked=true){
+  const item=ITEM_DB[itemId];
+  if(!item)return;
+  openModal(unlocked?item.name:'？？？',`<div class="modal-item-detail">${itemArtwork(itemId,'normal')}<p>${unlocked?item.description:'未解放のスキルの書です。対象スキルを一度入手すると詳細が解放されます。'}</p></div>`);
 }
 function buyShopOffer(tab,index){
   const offers=tab==='skill'?SKILL_EXCHANGE_OFFERS:COIN_SHOP_OFFERS;

@@ -1,8 +1,8 @@
 const app=document.getElementById('app'),skipBtn=document.getElementById('skipBtn'),retireBtn=document.getElementById('retireBtn'),backBtn=document.getElementById('backBtn'),homeBtn=document.getElementById('homeBtn'),headerActions=document.getElementById('headerActions');
 const ITEM_DB={
-  EXP_DROP:{id:'EXP_DROP',name:'経験のしずく',star:1,exp:1000,description:'合成素材として使用すると、1個につき1000EXPを獲得する。'},
-  EXP_CRYSTAL:{id:'EXP_CRYSTAL',name:'経験の結晶',star:2,exp:5000,description:'合成素材として使用すると、1個につき5000EXPを獲得する。'},
-  EXP_ORB:{id:'EXP_ORB',name:'経験の宝珠',star:3,exp:10000,description:'合成素材として使用すると、1個につき10000EXPを獲得する。'},
+  EXP_DROP:{id:'EXP_DROP',name:'経験のしずく',star:1,exp:1000,image:'exp_drop.png',description:'合成素材として使用すると、1個につき1000EXPを獲得する。'},
+  EXP_CRYSTAL:{id:'EXP_CRYSTAL',name:'経験の結晶',star:2,exp:5000,image:'exp_crystal.png',description:'合成素材として使用すると、1個につき5000EXPを獲得する。'},
+  EXP_ORB:{id:'EXP_ORB',name:'経験の宝珠',star:3,exp:10000,image:'exp_jewel.png',description:'合成素材として使用すると、1個につき10000EXPを獲得する。'},
   HEAL_POTION:{id:'HEAL_POTION',name:'回復薬',image:'heel_portion.png',battle:true,dungeons:[1,2,3,4],description:'戦闘中、味方全体のHPを20%回復する。'},
   RETURN_SCROLL:{id:'RETURN_SCROLL',name:'帰還スクロール',image:'return.png',battle:true,dungeons:[1,2,3,4],description:'戦闘を終了し、前層までの報酬を持ち帰る。'},
   MONSTER_FOOD_1:{id:'MONSTER_FOOD_1',name:'モンスターの餌（1）',image:'monster_food.png',battle:true,dungeons:[1,2,3],description:'選択した敵が仲間候補になる確率を10%加算する。'},
@@ -25,8 +25,8 @@ function normalizeItems(value){
   return items;
 }
 function itemStarDisplay(item){return '★'.repeat(item.star)}
-const state={screen:'modeSelect',mode:null,gachaTickets:0,appearanceTickets:0,items:emptyItemInventory(),dungeonItemSelections:{},carriedItemId:null,battleItemUsed:false,selectedSkillBookId:null,unlockedSkillExchange:new Set(),shopTab:'coin',unlockedAppearances:new Set(),point:0,enemyPoint:0,nextSpBonus:0,battleType:'normal',turn:1,isProcessing:false,skip:false,selectedAlly:0,selectedEnemy:0,pending:null,queue:[null,null,null],floor:0,dungeon:null,difficulty:'normal',lastDungeonId:null,lastDungeonDifficulty:null,dungeonProgress:loadDungeonProgress(),monsterDefeatCounts:loadMonsterDefeatCounts(),clearRecorded:false,bossEnemyIndices:new Set(),soloBossBattle:false,recruits:new Map(),floorResult:null,restRecoveryUsed:false,battleLogs:[],monsterSort:'acquired',monsterSortDir:'asc',partyCandidateSort:'acquired',partyCandidateSortDir:'asc',partyEditSlot:null,bulkPartySelection:[],detailFrom:'list',fusionParents:[],fusionChoices:[],fusionSelected:null,inheritChoices:[],inheritSelected:[],fusionResult:null,fusionLocked:false,owned:[],discovered:new Set(),party:[],dungeonStartSnapshot:null,lastSavedAt:null,saveLoadError:null,saveBlocked:false,saveDataDetected:false,loadedFromBackup:false};
-function makeOwned(id,level=1,_star=null,skills2=null){const b=monsterDB[id],lv=Math.max(1,level),stats=growthAtLevel(b,lv);return{uid:crypto.randomUUID?.()||Math.random().toString(36),...b,star:b.baseStar,plusValue:0,appearance:'default',level:lv,exp:0,nextExp:requiredExp(lv,b.expGrowth,b.baseStar),maxHp:stats.maxHp,hp:stats.maxHp,atk:stats.atk,def:stats.def,spd:stats.spd,skills:skills2??defaultSkills(b),poisonTimers:[],atkBuffTimers:[],defBuffTimers:[],atkDebuffTimers:[],defDebuffTimers:[],spdBuffTimers:[],spdDebuffTimers:[]}}
+const state={screen:'modeSelect',mode:null,gachaTickets:0,appearanceTickets:0,items:emptyItemInventory(),itemFilter:'all',dungeonItemSelections:{},carriedItemId:null,battleItemUsed:false,selectedSkillBookId:null,unlockedSkillExchange:new Set(),shopTab:'coin',unlockedAppearances:new Set(),point:0,enemyPoint:0,nextSpBonus:0,battleType:'normal',turn:1,isProcessing:false,skip:false,selectedAlly:0,selectedEnemy:0,pending:null,queue:[null,null,null],floor:0,dungeon:null,difficulty:'normal',lastDungeonId:null,lastDungeonDifficulty:null,dungeonProgress:loadDungeonProgress(),monsterDefeatCounts:loadMonsterDefeatCounts(),clearRecorded:false,bossEnemyIndices:new Set(),soloBossBattle:false,recruits:new Map(),floorResult:null,restRecoveryUsed:false,dungeonObtainedItems:{},battleLogs:[],monsterSort:'acquired',monsterSortDir:'asc',partyCandidateSort:'acquired',partyCandidateSortDir:'asc',monsterFilters:{favorite:false,stars:new Set(),attributes:new Set(),races:new Set()},partyEditSlot:null,bulkPartySelection:[],detailFrom:'list',fusionParents:[],fusionChoices:[],fusionSelected:null,inheritChoices:[],inheritSelected:[],fusionResult:null,fusionLocked:false,owned:[],discovered:new Set(),party:[],dungeonStartSnapshot:null,lastSavedAt:null,saveLoadError:null,saveBlocked:false,saveDataDetected:false,loadedFromBackup:false};
+function makeOwned(id,level=1,_star=null,skills2=null){const b=monsterDB[id],lv=Math.max(1,level),stats=growthAtLevel(b,lv);return{uid:crypto.randomUUID?.()||Math.random().toString(36),...b,star:b.baseStar,plusValue:0,appearance:'default',favorite:false,level:lv,exp:0,nextExp:requiredExp(lv,b.expGrowth,b.baseStar),maxHp:stats.maxHp,hp:stats.maxHp,atk:stats.atk,def:stats.def,spd:stats.spd,skills:skills2??defaultSkills(b),poisonTimers:[],atkBuffTimers:[],defBuffTimers:[],atkDebuffTimers:[],defDebuffTimers:[],spdBuffTimers:[],spdDebuffTimers:[]}}
 function defaultSkills(b){const prefix={火:'FIRE',水:'WATER',雷:'THUNDER',自然:'NATURE',闇:'DARK',光:'LIGHT',無:'NEUTRAL'}[b.attribute];const own=`${prefix}_1`;return['NORMAL',own,b.solid].filter((id,i,a)=>skills[id]&&a.indexOf(id)===i)}
 function initialSlimes(){
   return['SLIME_BLUE','SLIME_RED','SLIME_YELLOW','SLIME_GREEN'].map(id=>makeOwned(id,1));
@@ -45,6 +45,7 @@ function persistentMonster(monster){
     exp:monster.exp||0,
     plusValue:monster.plusValue||0,
     appearance:monster.appearance==='alternate'?'alternate':'default',
+    favorite:Boolean(monster.favorite),
     skills:[...(monster.skills||[])],
     hp:monster.hp
   };
@@ -115,6 +116,7 @@ function restoreOwnedMonster(raw,usedUids){
   monster.exp=Math.max(0,Math.floor(Number(raw.exp)||0));
   monster.nextExp=requiredExp(monster.level,monster.expGrowth,monster.star);
   monster.appearance=raw.appearance==='alternate'&&APPEARANCE_CHANGE_MONSTER_IDS.has(monster.id)?'alternate':'default';
+  monster.favorite=Boolean(raw.favorite);
   return monster;
 }
 function applySaveData(raw){

@@ -78,16 +78,33 @@ function confirmDungeonEntry(id){
             :id===3
               ?'始まりの草原・ノーマル10回クリアで解放済み'
               :'最初から選択可能';
-        return`<button class="difficulty-btn ${unlocked?'':'locked'}" onclick="startDungeon(${id},'${key}')" ${unlocked?'':'disabled'}><b>${cfg.name}</b><small>${condition}</small></button>`;
+        return`<button class="difficulty-btn ${unlocked?'':'locked'}" onclick="showDungeonChallengeConfirm(${id},'${key}')" ${unlocked?'':'disabled'}><b>${cfg.name}</b><small>${condition}</small></button>`;
       }).join('')}
-      <div class="battle-item-select"><b>持ち込むアイテム（1種1個）</b>
-      <button class="${!state.dungeonItemSelections[id]?'sel':''}" onclick="selectDungeonItem(${id},null)">持って行かない</button>
-      ${BATTLE_ITEM_IDS.filter(itemId=>ITEM_DB[itemId].dungeons.includes(id)).map(itemId=>`<button class="${state.dungeonItemSelections[id]===itemId?'sel':''}" onclick="selectDungeonItem(${id},'${itemId}')" ${(state.items[itemId]||0)<1?'disabled':''}>${itemArtwork(itemId,'small')}<span>${ITEM_DB[itemId].name} ×${state.items[itemId]||0}</span></button>`).join('')}</div>
-      <button class="btn-cancel" onclick="showDungeons()">戻る</button>
+      <div class="battle-item-select"><b>持ち込むアイテム</b>
+        <div class="battle-item-icon-row">
+          <button class="battle-item-icon-option no-item ${!state.dungeonItemSelections[id]?'sel':''}" onclick="selectDungeonItem(${id},null)" title="なし"><span>なし</span></button>
+          ${BATTLE_ITEM_IDS.filter(itemId=>ITEM_DB[itemId].dungeons.includes(id)).map(itemId=>`<button class="battle-item-icon-option ${state.dungeonItemSelections[id]===itemId?'sel':''}" onclick="selectDungeonItem(${id},'${itemId}')" ${(state.items[itemId]||0)<1?'disabled':''} title="${ITEM_DB[itemId].name}">${itemArtwork(itemId,'small')}<small>×${state.items[itemId]||0}</small></button>`).join('')}
+        </div>
+      </div>
     </div>
   </div>`;
   updateHeader();
 }
+
+function showDungeonChallengeConfirm(id,difficulty){
+  const dungeon=dungeonInfo(id),cfg=DIFFICULTIES[difficulty];
+  if(!dungeon||!cfg||!difficultyUnlocked(id,difficulty)){confirmDungeonEntry(id);return;}
+  state.screen='dungeonChallengeConfirm';
+  const keyItem=id===4&&difficulty==='normal'?ITEM_DB.KEY_CHAMPION_NORMAL:null;
+  const before=keyItem?(state.items[keyItem.id]||0):0;
+  app.innerHTML=`<div class="card result dungeon-challenge-confirm">
+    <div class="title">${dungeon.name}（${cfg.name}）に挑戦しますか？</div>
+    ${keyItem?`<div class="entry-cost-notice"><div>挑戦時にアイテムを消費します。</div><div class="entry-cost-row">${itemArtwork(keyItem.id,'small')}<span>${keyItem.name}</span><b>${before} → ${Math.max(0,before-1)}</b></div></div>`:''}
+    <div class="confirm-actions"><button class="wide btn-next" onclick="startDungeon(${id},'${difficulty}')">挑戦する</button><button class="wide btn-cancel" onclick="confirmDungeonEntry(${id})">キャンセル</button></div>
+  </div>`;
+  updateHeader();
+}
+
 function selectDungeonItem(dungeonId,itemId){
   if(itemId&&(!ITEM_DB[itemId]?.battle||!ITEM_DB[itemId].dungeons.includes(dungeonId)||(state.items[itemId]||0)<1))return;
   if(itemId)state.dungeonItemSelections[dungeonId]=itemId;
@@ -108,15 +125,20 @@ function showMonsters(){
   updateHeader();
 }
 function sortedOwnedMonsters(){
-  const list=[...state.owned];
+  const list=filterMonsters(state.owned);
   const dir=state.monsterSortDir==='asc'?1:-1;
-  if(state.monsterSort==='race'){
+  if(state.monsterSort==='number'){
+    list.sort((a,b)=>(dexNo(a.id)-dexNo(b.id))*dir);
+  }else if(state.monsterSort==='race'){
     const raceOrder=['物質','植物','獣','亜人','アンデッド','悪魔','精霊','龍'];
     list.sort((a,b)=>{
       const ra=raceOrder.indexOf(a.race),rb=raceOrder.indexOf(b.race);
       if(ra!==rb)return (ra-rb)*dir;
       return (dexNo(a.id)-dexNo(b.id))*dir;
     });
+  }else if(state.monsterSort==='attribute'){
+    const order=['火','水','雷','自然','闇','光','無'];
+    list.sort((a,b)=>((order.indexOf(a.attribute)-order.indexOf(b.attribute))||(dexNo(a.id)-dexNo(b.id)))*dir);
   }else if(state.monsterSort==='star'){
     list.sort((a,b)=>{
       if(a.star!==b.star)return (a.star-b.star)*dir;
@@ -142,16 +164,18 @@ function setMonsterSort(type){
     state.monsterSort=type;
     state.monsterSortDir='asc';
   }
-  showMonsterList();
+  closeModal();renderCurrentMonsterSelection();
 }
 function sortLabel(type,label){
   if(state.monsterSort!==type)return label;
   return `${label}${state.monsterSortDir==='asc'?' ↑':' ↓'}`;
 }
 function sortedPartyCandidates(list=state.owned){
-  const sorted=[...list],dir=state.partyCandidateSortDir==='asc'?1:-1;
+  const sorted=filterMonsters(list),dir=state.partyCandidateSortDir==='asc'?1:-1;
   const raceOrder=['物質','植物','獣','亜人','アンデッド','悪魔','精霊','龍'];
-  if(state.partyCandidateSort==='race')sorted.sort((a,b)=>((raceOrder.indexOf(a.race)-raceOrder.indexOf(b.race))||(dexNo(a.id)-dexNo(b.id)))*dir);
+  if(state.partyCandidateSort==='number')sorted.sort((a,b)=>(dexNo(a.id)-dexNo(b.id))*dir);
+  else if(state.partyCandidateSort==='race')sorted.sort((a,b)=>((raceOrder.indexOf(a.race)-raceOrder.indexOf(b.race))||(dexNo(a.id)-dexNo(b.id)))*dir);
+  else if(state.partyCandidateSort==='attribute'){const order=['火','水','雷','自然','闇','光','無'];sorted.sort((a,b)=>((order.indexOf(a.attribute)-order.indexOf(b.attribute))||(dexNo(a.id)-dexNo(b.id)))*dir)}
   else if(state.partyCandidateSort==='star')sorted.sort((a,b)=>((a.star-b.star)||(dexNo(a.id)-dexNo(b.id)))*dir);
   else if(state.partyCandidateSort==='level')sorted.sort((a,b)=>((a.level-b.level)||(dexNo(a.id)-dexNo(b.id)))*dir);
   else sorted.sort((a,b)=>(state.owned.indexOf(a)-state.owned.indexOf(b))*dir);
@@ -160,26 +184,59 @@ function sortedPartyCandidates(list=state.owned){
 function partyCandidateSortLabel(type,label){
   return state.partyCandidateSort===type?`${label}${state.partyCandidateSortDir==='asc'?' ↑':' ↓'}`:label;
 }
-function partyCandidateSortControls(){
-  return `<div class="sort-row"><button onclick="setPartyCandidateSort('acquired')">${partyCandidateSortLabel('acquired','取得順')}</button><button onclick="setPartyCandidateSort('race')">${partyCandidateSortLabel('race','種族順')}</button><button onclick="setPartyCandidateSort('star')">${partyCandidateSortLabel('star','星順')}</button><button onclick="setPartyCandidateSort('level')">${partyCandidateSortLabel('level','レベル順')}</button></div>`;
+function listToolbar(title){
+  return `<div class="screen-title-row"><div class="title">${title}</div><div class="list-toolbar"><button onclick="openMonsterFilterModal()">絞り込み</button><button onclick="openMonsterSortModal()">並べ替え</button></div></div>`;
 }
 function setPartyCandidateSort(type){
   if(state.partyCandidateSort===type)state.partyCandidateSortDir=state.partyCandidateSortDir==='asc'?'desc':'asc';
   else{state.partyCandidateSort=type;state.partyCandidateSortDir='asc'}
+  closeModal();renderCurrentMonsterSelection();
+}
+function renderCurrentMonsterSelection(){
   if(state.screen==='singlePartyChange')showSinglePartyChange(state.partyEditSlot);
   else if(state.screen==='bulkPartySelection')renderBulkPartySelection();
+  else showMonsterList();
+}
+function filterMonsters(list){
+  const f=state.monsterFilters;
+  return list.filter(x=>(!f.favorite||x.favorite)&&(!f.stars.size||f.stars.has(RARE_MONSTER_IDS.has(x.id)?'rare':String(x.star)))&&(!f.attributes.size||f.attributes.has(x.attribute))&&(!f.races.size||f.races.has(x.race)));
+}
+function openMonsterSortModal(){
+  const candidate=state.screen==='singlePartyChange'||state.screen==='bulkPartySelection';
+  const current=candidate?state.partyCandidateSort:state.monsterSort;
+  const labels={acquired:'取得順',number:'番号順',race:'種族順',attribute:'属性順',star:'星順',level:'レベル順'};
+  openModal('並べ替え',`<div class="modal-button-grid">${Object.entries(labels).map(([id,label])=>`<button class="${current===id?'active':''}" onclick="${candidate?'setPartyCandidateSort':'setMonsterSort'}('${id}')">${label}</button>`).join('')}</div>`);
+}
+function openMonsterFilterModal(){
+  const f=state.monsterFilters;
+  openModal('絞り込み',`<div class="filter-main-grid">
+    <button class="${f.favorite?'active':''}" onclick="toggleMonsterFilter('favorite')">お気に入り</button>
+    <button onclick="showMonsterFilterChoices('stars')">星</button>
+    <button onclick="showMonsterFilterChoices('attributes')">属性</button>
+    <button onclick="showMonsterFilterChoices('races')">種族</button>
+    <button onclick="clearMonsterFilters()">すべて解除</button>
+  </div><div id="filterChoices"></div>`);
+}
+function showMonsterFilterChoices(type){
+  const values=type==='stars'?['1','2','3','4','5','rare']:type==='attributes'?['火','水','雷','自然','闇','光']:['物質','植物','獣','亜人','アンデッド','悪魔','精霊','龍'];
+  const selected=state.monsterFilters[type];
+  const labels=value=>type==='stars'?(value==='rare'?'<span class="rare-filter-star">★</span>':value==='5'?'<span class="filter-star-five">★★★<br>★★</span>':'★'.repeat(Number(value))):type==='attributes'?monsterIcon('attribute',value):monsterIcon('race',value);
+  document.getElementById('filterChoices').innerHTML=`<div class="filter-choice-grid ${type==='stars'?'star-filter-grid':''}">${values.map(value=>`<button class="${selected.has(value)?'active':''}" onclick="toggleMonsterFilter('${type}','${value}')">${labels(value)}</button>`).join('')}</div>`;
+}
+function toggleMonsterFilter(type,value){
+  if(type==='favorite')state.monsterFilters.favorite=!state.monsterFilters.favorite;
+  else{const set=state.monsterFilters[type];set.has(value)?set.delete(value):set.add(value)}
+  closeModal();renderCurrentMonsterSelection();openMonsterFilterModal();if(type!=='favorite')showMonsterFilterChoices(type);
+}
+function clearMonsterFilters(){
+  state.monsterFilters={favorite:false,stars:new Set(),attributes:new Set(),races:new Set()};
+  closeModal();renderCurrentMonsterSelection();
 }
 function showMonsterList(){
   state.screen='monsterList';
   const list=sortedOwnedMonsters();
   app.innerHTML=`<div class="card">
-    <div class="title">モンスター一覧</div>
-    <div class="sort-row">
-      <button onclick="setMonsterSort('acquired')">${sortLabel('acquired','取得順')}</button>
-      <button onclick="setMonsterSort('race')">${sortLabel('race','種族順')}</button>
-      <button onclick="setMonsterSort('star')">${sortLabel('star','星順')}</button>
-      <button onclick="setMonsterSort('level')">${sortLabel('level','レベル順')}</button>
-    </div>
+    ${listToolbar('モンスター一覧')}
     <div class="monster-list-heading" aria-hidden="true">
       <span>名前</span><span>レベル</span><span>星</span><span>＋値</span><span>属性</span><span>種族</span>
     </div>
@@ -207,10 +264,6 @@ function showPartyFormation(){
         ${monsterArtwork(x,'small')}<span><b>${i+1}. No.${dexNo(x.id)}　${x.name}</b> Lv${x.level} ${starDisplay(x)} ＋${x.plusValue||0}
         <span class="muted">${x.race} / ${x.attribute}　HP${x.maxHp} 攻${x.atk} 防${x.def} 速${x.spd}</span></span>
       </button>
-      <div class="party-order-controls">
-        <button onclick="movePartyMember(${i},-1)" ${i===0?'disabled':''}>←</button>
-        <button onclick="movePartyMember(${i},1)" ${i===state.party.length-1?'disabled':''}>→</button>
-      </div>
       <button class="btn-next change-btn" onclick="showSinglePartyChange(${i})">変更</button>
     </div>`).join('')}
     <button class="wide btn-next" onclick="showBulkPartySelection()">一括編成</button>
@@ -230,9 +283,8 @@ function showSinglePartyChange(slot){
   state.partyEditSlot=slot;
   const currentUid=state.party[slot];
   app.innerHTML=`<div class="card">
-    <div class="title">${slot+1}体目を変更</div>
+    ${listToolbar(`${slot+1}体目を変更`)}
     <div class="muted">交代するモンスターを選んでください。</div>
-    ${partyCandidateSortControls()}
     ${sortedPartyCandidates(state.owned.filter(x=>x.uid!==currentUid&&!state.party.includes(x.uid))).map(x=>`
       <button class="listitem artwork-list-row party-choice-button" onclick="confirmSinglePartyChange('${x.uid}')">
         ${monsterArtwork(x,'small')}<span><b>No.${dexNo(x.id)}　${x.name}</b> Lv${x.level} ${starDisplay(x)} ＋${x.plusValue||0}
@@ -257,9 +309,8 @@ function showBulkPartySelection(){
 }
 function renderBulkPartySelection(){
   app.innerHTML=`<div class="card">
-    <div class="title">一括編成</div>
+    ${listToolbar('一括編成')}
     <div class="muted">所持モンスターから1～3体選んでください。選択中：${state.bulkPartySelection.length}/3</div>
-    ${partyCandidateSortControls()}
     ${sortedPartyCandidates().map(x=>{
       const selected=state.bulkPartySelection.includes(x.uid);
       return `<button class="listitem artwork-list-row party-choice-button ${selected?'selected-party':''}" onclick="toggleBulkParty('${x.uid}')">
@@ -267,7 +318,7 @@ function renderBulkPartySelection(){
         <span class="muted">${x.race} / ${x.attribute}</span></span>
       </button>`;
     }).join('')}
-    <button class="wide btn-next" onclick="applyBulkParty()" ${state.bulkPartySelection.length<1?'disabled':''}>このメンバーで編成</button>
+    <div class="bulk-party-fixed"><button class="wide btn-next" onclick="applyBulkParty()" ${state.bulkPartySelection.length<1?'disabled':''}>このメンバーで編成</button></div>
     
   </div>`;
   updateHeader();
@@ -372,7 +423,7 @@ function showMonsterDetail(uid,from='list'){state.detailFrom=from;
     <div class="detail-head">
       ${monsterArtwork(x,'large')}
       <div>
-        <div class="title">${dexNo(x.id)===9999?'':`No.${dexNo(x.id)}　`}${x.name}</div>
+        <div class="detail-title-row"><div class="title">${dexNo(x.id)===9999?'':`No.${dexNo(x.id)}　`}${x.name}</div>${from==='list'?`<button class="favorite-button ${x.favorite?'active':''}" onclick="toggleFavorite('${x.uid}')">★</button>`:''}</div>
         <div>Lv${x.level}　${starDisplay(x)}　＋${x.plusValue||0}</div>
         <div class="muted">${x.race} / ${x.attribute}</div>
         <div class="muted">能力成長：${x.growth}　経験値成長：${x.expGrowth||'通常型'}</div>
@@ -428,6 +479,13 @@ function showMonsterDetail(uid,from='list'){state.detailFrom=from;
   updateHeader();
 }
 function toggleParty(uid){}
+function toggleFavorite(uid){
+  const monster=state.owned.find(x=>x.uid===uid);
+  if(!monster)return;
+  monster.favorite=!monster.favorite;
+  saveGame({force:true});
+  showMonsterDetail(uid,'list');
+}
 function developerLevelUp(uid){
   if(state.mode!=='development')return;
   const monster=state.owned.find(x=>x.uid===uid);

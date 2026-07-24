@@ -19,6 +19,7 @@ async function startDungeon(n,difficulty='normal'){
   state.recruits=new Map();
   state.floorResult=null;
   state.restRecoveryUsed=false;
+  state.dungeonObtainedItems={};
   state.clearRecorded=false;
   state.battleLogs=[];
   state.point=0;
@@ -59,11 +60,10 @@ function showRestFloor(){
   const recoveryText=state.restRecoveryUsed?'回復済み':'戦闘不能：HP25%で復活／生存：最大HPの50%回復';
   app.innerHTML=`<div class="card result">
     <div class="title">第${state.floor}層　休息地点</div>
-    <div class="muted">ここまでに獲得した経験値と仲間候補を保持しています。</div>
     <div class="listitem">${recoveryText}</div>
     <button class="wide" onclick="recoverAtRest()" ${state.restRecoveryUsed?'disabled':''}>回復する</button>
     <button class="wide btn-next" onclick="continueFromRest()">先へ進む</button>
-    <button class="wide btn-cancel" onclick="returnFromRest()">帰還する</button>
+    <button class="wide btn-cancel" onclick="confirmReturnFromRest()">帰還する</button>
   </div>`;
   skipBtn.style.display='none';
   backBtn.style.display='none';
@@ -89,6 +89,18 @@ async function continueFromRest(){
   if(state.floor>=state.dungeon.max)return;
   state.floor++;
   enterCurrentFloor();
+}
+function confirmReturnFromRest(){
+  state.screen='restReturnConfirm';
+  app.innerHTML=`<div class="card result">
+    <div class="title">このダンジョンから帰還しますか？</div>
+    <div class="muted">ここまでの報酬を持ち帰ることができます。</div>
+    <div class="confirm-actions"><button class="wide btn-next" onclick="returnFromRest()">はい</button><button class="wide btn-cancel" onclick="showRestFloor()">いいえ</button></div>
+  </div>`;
+  skipBtn.style.display='none';
+  backBtn.style.display='none';
+  retireBtn.style.display='none';
+  homeBtn.style.display='none';
 }
 function returnFromRest(){
   showRecruit(false);
