@@ -568,8 +568,10 @@ function showRecruit(cleared=true){
 function takeRecruit(id,level=1){const joinLevel=Math.max(1,Math.min(100,Math.floor(Number(level)||1)));state.owned.push(makeOwned(id,joinLevel));state.discovered.add(id);saveGame({force:true});alert(`${monsterDB[id].name} Lv${joinLevel}が仲間になった！`);home()}
 skipBtn.onclick=()=>{state.skip=true;skipBtn.disabled=true};homeBtn.onclick=()=>{if(!state.fusionLocked&&state.screen!=='battle')home()};window.home=home;window.retryLastDungeon=retryLastDungeon;window.showDungeons=showDungeons;window.showMonsters=showMonsters;window.showFusion=showFusion;window.showBook=showBook;window.showBookDetail=showBookDetail;window.showModeSelection=showModeSelection;window.selectGameMode=selectGameMode;window.showDataManagement=showDataManagement;window.forceGameUpdate=forceGameUpdate;window.manualSave=manualSave;window.exportSaveData=exportSaveData;window.importSaveData=importSaveData;window.deleteSaveData=deleteSaveData;window.developerAcquireMonster=developerAcquireMonster;window.developerLevelUp=developerLevelUp;window.startDungeon=startDungeon;window.pickParent=pickParent;window.startFusion=startFusion;window.beginFusion=beginFusion;window.confirmFusionChoice=confirmFusionChoice;window.cancelFusionChoice=cancelFusionChoice;window.showInheritance=showInheritance;window.toggleInheritance=toggleInheritance;window.completeFusion=completeFusion;window.finishFusionResult=finishFusionResult;window.toggleParty=toggleParty;window.showMonsterDetail=showMonsterDetail;window.selectEnemy=selectEnemy;window.selectAlly=selectAlly;window.chooseSkill=chooseSkill;window.executeTurn=executeTurn;window.takeRecruit=takeRecruit;
 window.addEventListener('beforeunload',()=>saveGame());
+window.addEventListener('pagehide',()=>saveGame());
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveGame()});
 if(loadedExistingSave)home();
+else if(state.saveDataDetected)showModeSelection();
 else if(BUILD_MODE==='normal'||BUILD_MODE==='development')selectGameMode(BUILD_MODE);
 else showModeSelection();
 showVersionUpdateNotice();

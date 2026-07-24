@@ -25,7 +25,7 @@ function normalizeItems(value){
   return items;
 }
 function itemStarDisplay(item){return '★'.repeat(item.star)}
-const state={screen:'modeSelect',mode:null,gachaTickets:0,appearanceTickets:0,items:emptyItemInventory(),dungeonItemSelections:{},carriedItemId:null,battleItemUsed:false,selectedSkillBookId:null,unlockedSkillExchange:new Set(),shopTab:'coin',unlockedAppearances:new Set(),point:0,enemyPoint:0,nextSpBonus:0,battleType:'normal',turn:1,isProcessing:false,skip:false,selectedAlly:0,selectedEnemy:0,pending:null,queue:[null,null,null],floor:0,dungeon:null,difficulty:'normal',lastDungeonId:null,lastDungeonDifficulty:null,dungeonProgress:loadDungeonProgress(),monsterDefeatCounts:loadMonsterDefeatCounts(),clearRecorded:false,bossEnemyIndices:new Set(),soloBossBattle:false,recruits:new Map(),floorResult:null,restRecoveryUsed:false,battleLogs:[],monsterSort:'acquired',monsterSortDir:'asc',partyCandidateSort:'acquired',partyCandidateSortDir:'asc',partyEditSlot:null,bulkPartySelection:[],detailFrom:'list',fusionParents:[],fusionChoices:[],fusionSelected:null,inheritChoices:[],inheritSelected:[],fusionResult:null,fusionLocked:false,owned:[],discovered:new Set(),party:[],dungeonStartSnapshot:null,lastSavedAt:null,saveLoadError:null,saveBlocked:false};
+const state={screen:'modeSelect',mode:null,gachaTickets:0,appearanceTickets:0,items:emptyItemInventory(),dungeonItemSelections:{},carriedItemId:null,battleItemUsed:false,selectedSkillBookId:null,unlockedSkillExchange:new Set(),shopTab:'coin',unlockedAppearances:new Set(),point:0,enemyPoint:0,nextSpBonus:0,battleType:'normal',turn:1,isProcessing:false,skip:false,selectedAlly:0,selectedEnemy:0,pending:null,queue:[null,null,null],floor:0,dungeon:null,difficulty:'normal',lastDungeonId:null,lastDungeonDifficulty:null,dungeonProgress:loadDungeonProgress(),monsterDefeatCounts:loadMonsterDefeatCounts(),clearRecorded:false,bossEnemyIndices:new Set(),soloBossBattle:false,recruits:new Map(),floorResult:null,restRecoveryUsed:false,battleLogs:[],monsterSort:'acquired',monsterSortDir:'asc',partyCandidateSort:'acquired',partyCandidateSortDir:'asc',partyEditSlot:null,bulkPartySelection:[],detailFrom:'list',fusionParents:[],fusionChoices:[],fusionSelected:null,inheritChoices:[],inheritSelected:[],fusionResult:null,fusionLocked:false,owned:[],discovered:new Set(),party:[],dungeonStartSnapshot:null,lastSavedAt:null,saveLoadError:null,saveBlocked:false,saveDataDetected:false,loadedFromBackup:false};
 function makeOwned(id,level=1,_star=null,skills2=null){const b=monsterDB[id],lv=Math.max(1,level),stats=growthAtLevel(b,lv);return{uid:crypto.randomUUID?.()||Math.random().toString(36),...b,star:b.baseStar,plusValue:0,appearance:'default',level:lv,exp:0,nextExp:requiredExp(lv,b.expGrowth,b.baseStar),maxHp:stats.maxHp,hp:stats.maxHp,atk:stats.atk,def:stats.def,spd:stats.spd,skills:skills2??defaultSkills(b),poisonTimers:[],atkBuffTimers:[],defBuffTimers:[],atkDebuffTimers:[],defDebuffTimers:[],spdBuffTimers:[],spdDebuffTimers:[]}}
 function defaultSkills(b){const prefix={火:'FIRE',水:'WATER',雷:'THUNDER',自然:'NATURE',闇:'DARK',光:'LIGHT',無:'NEUTRAL'}[b.attribute];const own=`${prefix}_1`;return['NORMAL',own,b.solid].filter((id,i,a)=>skills[id]&&a.indexOf(id)===i)}
 function initialSlimes(){
@@ -155,7 +155,7 @@ function applySaveData(raw){
   state.dungeonProgress=normalizeDungeonProgress(raw.dungeonProgress);
   const savedDungeonId=Number(raw.lastDungeonId);
   const savedDifficulty=typeof raw.lastDungeonDifficulty==='string'?raw.lastDungeonDifficulty:null;
-  state.lastDungeonId=dungeonInfo(savedDungeonId)?savedDungeonId:null;
+  state.lastDungeonId=[1,2,3,4].includes(savedDungeonId)?savedDungeonId:null;
   state.lastDungeonDifficulty=state.lastDungeonId&&DIFFICULTIES[savedDifficulty]?savedDifficulty:null;
   state.monsterDefeatCounts=Object.fromEntries(
     Object.entries(raw.monsterDefeatCounts||{})
@@ -176,10 +176,24 @@ function saveGame({force=false}={}){
   if(state.saveBlocked&&!force)return false;
   try{
     const data=buildSaveData();
-    localStorage.setItem(GAME_SAVE_KEY,JSON.stringify(data));
+    const text=JSON.stringify(data);
+    const previous=localStorage.getItem(GAME_SAVE_KEY);
+    if(previous){
+      try{
+        const previousData=JSON.parse(previous);
+        if(previousData&&Array.isArray(previousData.owned)&&previousData.owned.length){
+          localStorage.setItem(GAME_SAVE_BACKUP_KEY,previous);
+        }
+      }catch(_error){}
+    }
+    localStorage.setItem(GAME_SAVE_KEY,text);
+    if(localStorage.getItem(GAME_SAVE_KEY)!==text)throw new Error('ブラウザに保存内容を確認できませんでした。');
+    localStorage.setItem(GAME_SAVE_BACKUP_KEY,text);
     state.lastSavedAt=data.savedAt;
     state.saveLoadError=null;
     state.saveBlocked=false;
+    state.saveDataDetected=true;
+    state.loadedFromBackup=false;
     return true;
   }catch(error){
     state.saveLoadError=`保存できませんでした：${error.message||error}`;
@@ -187,16 +201,39 @@ function saveGame({force=false}={}){
   }
 }
 function loadGame(){
-  const text=localStorage.getItem(GAME_SAVE_KEY);
-  if(!text)return false;
+  let primaryText=null;
+  let backupText=null;
   try{
-    applySaveData(JSON.parse(text));
-    return true;
+    primaryText=localStorage.getItem(GAME_SAVE_KEY);
+    backupText=localStorage.getItem(GAME_SAVE_BACKUP_KEY);
   }catch(error){
-    state.saveLoadError=`セーブデータを読み込めませんでした：${error.message||error}`;
+    state.saveLoadError=`ブラウザの保存領域を使用できません：${error.message||error}`;
     state.saveBlocked=true;
     return false;
   }
+  state.saveDataDetected=Boolean(primaryText||backupText);
+  if(!state.saveDataDetected)return false;
+  const candidates=[
+    {text:primaryText,backup:false},
+    {text:backupText,backup:true}
+  ].filter((candidate,index,array)=>candidate.text&&array.findIndex(other=>other.text===candidate.text)===index);
+  const errors=[];
+  for(const candidate of candidates){
+    try{
+      applySaveData(JSON.parse(candidate.text));
+      state.loadedFromBackup=candidate.backup;
+      if(candidate.backup){
+        localStorage.setItem(GAME_SAVE_KEY,candidate.text);
+        state.saveLoadError='予備セーブから復旧しました。';
+      }
+      return true;
+    }catch(error){
+      errors.push(error.message||String(error));
+    }
+  }
+  state.saveLoadError=`セーブデータを読み込めませんでした：${errors.join(' / ')}`;
+  state.saveBlocked=true;
+  return false;
 }
 function restoreDungeonStartSnapshot(){
   if(!state.dungeonStartSnapshot)return;

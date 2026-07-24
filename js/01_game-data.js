@@ -1,4 +1,4 @@
-const GAME_VERSION='Ver1.76.1';
+const GAME_VERSION='Ver1.76.2';
 const VERSION_NOTICE_KEY='hissoriRpgLastShownVersion';
 const MAX_POINT=9, DELAY=500;
 const ATTRS=['火','水','雷','自然','闇','光'];
@@ -268,6 +268,7 @@ const DIFFICULTIES={
 const DUNGEON_PROGRESS_KEY='hissoriRpgDungeonProgressV1';
 const MONSTER_DEFEAT_COUNTS_KEY='hissoriRpgMonsterDefeatCountsV1';
 const GAME_SAVE_KEY='hissoriRpgSaveV1';
+const GAME_SAVE_BACKUP_KEY='hissoriRpgSaveBackupV1';
 const GAME_SAVE_VERSION=7;
 const GACHA_TICKET_DROP_RATE=.01;
 const GACHA_RATES={EXP_DROP:.50,EXP_CRYSTAL:.10,EXP_ORB:.05,APPEARANCE_TICKET:.05,SKILL_TICKET:.03,MISS:.27};

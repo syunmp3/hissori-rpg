@@ -52,13 +52,17 @@ function showModeSelection(){
       <div class="muted">スライム4体・Lv1で開始し、図鑑を全開放します。図鑑から取得、個体詳細からレベル上昇ができます。</div>
       <button class="wide" onclick="selectGameMode('development')">開発用で開始</button>
     </div>
-    <div class="save-warning">モードはセーブデータごとに固定されます。変更する場合はデータ管理からセーブを削除してください。</div>
+    ${state.saveDataDetected&&state.saveBlocked?`<div class="save-warning">${state.saveLoadError}<br>既存データを保護するため、新規データでは上書きしていません。データを削除して最初から始める場合だけ、下の削除ボタンを押してください。</div><button class="wide btn-cancel" onclick="deleteSaveData()">読み込めないセーブデータを削除</button>`:'<div class="save-warning">モードはセーブデータごとに固定されます。変更する場合はデータ管理からセーブを削除してください。</div>'}
     <div class="title-version">${GAME_VERSION}</div>
   </div>`;
   updateHeader();
 }
 function selectGameMode(mode){
   if(mode!=='normal'&&mode!=='development')return;
+  if(state.saveDataDetected&&state.saveBlocked){
+    alert('読み込めないセーブデータが残っています。既存データを守るため、新規開始はできません。削除してよい場合は「読み込めないセーブデータを削除」を押してください。');
+    return;
+  }
   state.mode=mode;
   state.owned=initialSlimes();
   state.party=state.owned.slice(0,3).map(x=>x.uid);
@@ -337,6 +341,7 @@ function importSaveData(){
 function deleteSaveData(){
   if(!confirm('端末内のセーブデータを削除して、新規状態へ戻しますか？\\nこの操作は取り消せません。'))return;
   localStorage.removeItem(GAME_SAVE_KEY);
+  localStorage.removeItem(GAME_SAVE_BACKUP_KEY);
   localStorage.removeItem(DUNGEON_PROGRESS_KEY);
   localStorage.removeItem(MONSTER_DEFEAT_COUNTS_KEY);
   location.reload();
