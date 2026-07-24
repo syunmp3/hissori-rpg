@@ -331,7 +331,7 @@
   },
   {
     "number": 56,
-    "i d": "TRENT",
+    "id": "TRENT",
     "name": "トレント",
     "race": "植物"
   },
@@ -394,5 +394,29 @@
     "id": "HAMADRYAD",
     "name": "ハマドリュアス",
     "race": "精霊"
+  },
+  {
+    "number": 67,
+    "id": "GLOW_SPIRIT",
+    "name": "グロウスピリット",
+    "race": "物質"
+  },
+  {
+    "number": 68,
+    "id": "GLOW_ELEMENT",
+    "name": "グロウエレメント",
+    "race": "物質"
+  },
+  {
+    "number": 69,
+    "id": "GLOW_CORE",
+    "name": "グロウコア",
+    "race": "物質"
+  },
+  {
+    "number": 70,
+    "id": "GLOW_ORB",
+    "name": "グロウオーブ",
+    "race": "物質"
   }
 ]
