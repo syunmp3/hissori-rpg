@@ -715,9 +715,6 @@ function toggleInheritance(id){
 function fusionPlusValue(parentA,parentB){
   return Math.min(10,Math.max(parentA.plusValue||0,parentB.plusValue||0)+1);
 }
-function fusionStatBonus(plusValue){
-  return {hp:plusValue*5,atk:plusValue*2,def:plusValue*2,spd:plusValue};
-}
 function completeFusion(id){
   if(!state.fusionLocked)return;
 

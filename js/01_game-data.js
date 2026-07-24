@@ -1,4 +1,4 @@
-const GAME_VERSION='Ver1.76';
+const GAME_VERSION='Ver1.76.1';
 const VERSION_NOTICE_KEY='hissoriRpgLastShownVersion';
 const MAX_POINT=9, DELAY=500;
 const ATTRS=['火','水','雷','自然','闇','光'];
@@ -321,6 +321,10 @@ function requiredExp(level,type='通常型',star=1){
   const lv=Math.max(1,Math.min(99,level));
   const starMultiplier=STAR_EXP_MULTIPLIERS[Math.max(1,Math.min(5,Number(star)||1))]||1;
   return Math.round((50+30*lv+23*lv*lv)*BASE_REQUIRED_EXP_RATE*expGrowthMultiplier(type,lv)*starMultiplier);
+}
+function fusionStatBonus(plusValue){
+  const plus=Math.max(0,Math.min(20,Math.floor(Number(plusValue)||0)));
+  return {hp:plus*5,atk:plus*2,def:plus*2,spd:plus};
 }
 function growthAtLevel(base,level){
   const gain=Math.max(0,level-1);
